@@ -1,99 +1,110 @@
-# ============================================================
-# 黑金剛 AI 電商總控中心 PRO - 蝦皮上傳與自動化模式 (app.py)
-# ============================================================
-
-from pathlib import Path
 import streamlit as st
+import datetime
 
 # 設定網頁版面
 st.set_page_config(
-    page_title="黑金剛 AI 電商總控中心 PRO", page_icon="🦍", layout="centered"
+    page_title="黑金剛 AI 電商總控中心 PRO - 自動選品", 
+    page_icon="🦍", 
+    layout="centered"
 )
 
 st.title("🦍 黑金剛 AI 電商總控中心 PRO")
-st.caption("商品真實性優先 | AI 主控 | 蝦皮自動化上架工作流")
+st.caption("蝦皮自動選品與 AI 智慧行銷工作流")
+
+# 建立分頁介面 (模擬截圖中的功能切換)
+tab1, tab2, tab3 = st.tabs(["🔍 蝦皮自動選品", "📜 自動選品紀錄", "🎬 AI 混剪短影音"])
 
 # ============================================================
-# 1. 預估利潤率計算區塊
+# 分頁 1：蝦皮自動選品 (對應圖 1 & 圖 2)
 # ============================================================
-st.markdown("### 💰 預估利潤率計算")
-col1, col2 = st.columns(2)
-with col1:
-  cost_price = st.number_input("商品成本 (NT$)", min_value=0.0, value=0.0, step=10.0)
-with col2:
-  selling_price = st.number_input(
-      "預估售價 (NT$)", min_value=0.0, value=0.0, step=10.0
-  )
+with tab1:
+    st.subheader("🛒 蝦皮自動選品工具")
+    
+    keyword = st.text_input("搜尋關鍵字", value="果果能量", placeholder="輸入想推廣的商品關鍵字...")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        start_item = st.number_input("從第幾件開始", min_value=1, value=1)
+    with col2:
+        max_items = st.number_input("預計查看 (最多200件)", min_value=1, max_value=200, value=200)
+    
+    st.markdown("##### ⚙️ 進階篩選條件")
+    col_f1, col_f2 = st.columns(2)
+    with col_f1:
+        min_commission = st.number_input("最低分潤率 (%)", value=3.0)
+        min_sales = st.number_input("最低月銷量 (件)", value=30)
+    with col_f2:
+        max_promo_people = st.number_input("最高推廣人數", value=150)
+        price_range = st.slider("售價範圍 (NT$)", 0, 100000, (150, 100000))
 
-if selling_price > 0:
-  profit = selling_price - cost_price
-  profit_margin = (profit / selling_price) * 100
-  st.metric(label="預估利潤率", value=f"{profit_margin:.2f}%", delta=f"NT$ {profit:.1f}")
-else:
-  st.metric(label="預估利潤率", value="0.00%")
+    st.info(f"📌 預計將查看第 {start_item} ～ {start_item + max_items - 1} 件商品 (共 {max_items} 件)")
 
+    if st.button("🚀 開始選品", type="primary", use_container_width=True):
+        with st.spinner(f"🦍正在自動掃描蝦皮關鍵字「{keyword}」的聯盟商品..."):
+            # 這裡未來可串接 n8n 或蝦皮聯盟 API 爬蟲
+            st.success(f"✅ 掃描完成！找到 36 件符合條件的商品。")
+            
+            # 模擬呈現搜尋結果 (對應圖 5)
+            st.markdown("### 📦 選品結果清單")
+            
+            sample_products = [
+                {"name": "蛋白質威化餅 健工聯名新口味 Protein Wafer", "price": 259, "commission": 7, "promo": 149, "sales": 798},
+                {"name": "水解乳清蛋白 多口味清蛋白飲 (500g/包)", "price": 1189, "commission": 7, "promo": 129, "sales": 401},
+                {"name": "果果堅果 乳清蛋白 隨身包", "price": 489, "commission": 3, "promo": 150, "sales": 345},
+            ]
+            
+            for idx, p in enumerate(sample_products, 1):
+                with st.container():
+                    st.markdown(f"**{idx}. {p['name']}**")
+                    st.caption(f"💰 售價: ${p['price']} | 📈 分潤: {p['commission']}% | 👥 推廣人數: {p['promo']} | 📦 月銷量: {p['sales']}")
+                    
+                    b1, b2, b3 = st.columns(3)
+                    with b1:
+                        if st.button("📋 複製", key=f"copy_{idx}"):
+                            st.toast(f"已複製 {p['name']} 資訊！")
+                    with b2:
+                        if st.button("🎬 AI 混剪", key=f"video_{idx}"):
+                            st.toast(f"已將 {p['name']} 送入 AI 短影音引擎！")
+                    with b3:
+                        if st.button("⭐ 收藏", key=f"fav_{idx}"):
+                            st.toast(f"已加入商品收藏！")
+                    st.markdown("---")
+
+# ============================================================
+# 分頁 2：自動選品紀錄 (對應圖 4)
+# ============================================================
+with tab2:
+    st.subheader("📜 自動選品歷史紀錄")
+    
+    history_data = [
+        {"keyword": "果果能量", "status": "掃描完成", "found": 36, "total": 200, "time": "2026-09-16 21:25", "cond": "分潤率 ≥ 3%、推廣人數 ≤ 150、月銷量 ≥ 30"},
+        {"keyword": "蝦皮直營", "status": "掃描完成", "found": 2, "total": 200, "time": "2026-09-16 21:16", "cond": "分潤率 ≥ 3%、推廣人數 ≤ 150、月銷量 ≥ 30"},
+        {"keyword": "便器", "status": "已停止", "found": 33, "total": 67, "time": "2026-09-15 21:47", "cond": "分潤率 ≥ 3%、推廣人數 ≤ 100、月銷量 ≥ 30"}
+    ]
+
+    for h in history_data:
+        with st.container():
+            col_h1, col_h2 = st.columns([3, 1])
+            with col_h1:
+                st.markdown(f"#### 🔍 {h['keyword']} <span style='color:green; font-size:14px;'>[{h['status']}]</span>", unsafe_allow_html=True)
+                st.write(f"找到 **{h['found']}** 件符合 · 共掃描 {h['total']} 件")
+                st.caption(f"條件：{h['cond']}")
+                st.caption(f"掃描時間：{h['time']}")
+            with col_h2:
+                if st.button("查看", key=f"view_{h['keyword']}_{h['time']}"):
+                    st.info(f"正在載入 {h['keyword']} 的歷史選品結果...")
+            st.markdown("---")
+
+# ============================================================
+# 分頁 3：AI 混剪短影音 (對應圖 3)
+# ============================================================
+with tab3:
+    st.subheader("🎬 AI 混剪短影音引擎")
+    st.markdown("只要加入圖片、影片和商品資訊，AI 就能幫你自動混剪出適合 TikTok / YouTube Shorts / Reels 的短影音。")
+    
+    if st.button("✨ 立即建立 AI 混剪任務", type="primary", use_container_width=True):
+        st.success("🚀 AI 短影音混剪工作流已啟動！")
+
+# 頁尾
 st.markdown("---")
-
-# ============================================================
-# 2. 蝦皮上傳模式｜改用「商品網址 / 圖片連結 / 文字」輸入（避開手機上傳限制）
-# ============================================================
-st.subheader("🛒 蝦皮商品資訊模式")
-
-shopee_input_mode = st.radio(
-    "選擇輸入方式", ["貼上蝦皮商品網址 / 圖片網址", "手動輸入商品資料"], index=0
-)
-
-product_name = ""
-product_image_url = ""
-product_description = ""
-
-if shopee_input_mode == "貼上蝦皮商品網址 / 圖片網址":
-  product_image_url = st.text_input(
-      "🔗 貼上商品圖片網址 (Image URL)",
-      placeholder="請貼上圖片網址（例如從瀏覽器複製的圖片連結）",
-  )
-  product_name = st.text_input("📦 商品名稱 / 關鍵字", placeholder="例如：史努比寬鬆短T恤")
-  
-  if product_image_url:
-    st.image(product_image_url, caption="預覽商品圖片", use_container_width=True)
-
-else:
-  product_name = st.text_input("📦 商品名稱", placeholder="例如：史努比寬鬆短T恤")
-  product_description = st.text_area("📝 商品規格/特色描述", placeholder="請輸入材質、尺寸、顏色等特點...")
-
-st.markdown("---")
-
-# ============================================================
-# 3. 啟動黑金剛 AI 商品全流程
-# ============================================================
-if st.button(
-    "🚀 啟動黑金剛 AI 商品全流程", type="primary", use_container_width=True
-):
-  if product_name:
-    with st.spinner("🦍 黑金剛 AI 正在執行：商品解析 ➡️ 行銷文案生成 ➡️ 系統歸檔..."):
-      # 這裡可以直接對接你的 n8n 或 AI 模型
-      st.success(f"✅ 成功為【{product_name}】生成蝦皮聯盟行銷與上架內容！")
-      
-      with st.expander("✨ AI 生成的蝦皮推廣文案預覽", expanded=True):
-        st.markdown(f"**【爆款推薦】{product_name}**")
-        st.markdown("🔥 質感超好、舒適透氣，粉絲強力推薦必備款！")
-        st.markdown("🛒 立即搶購：[請在此填入你的蝦皮分潤短連結]")
-        st.markdown("#蝦皮購物 #好物推薦 #穿搭必備 #聯盟行銷")
-  else:
-    st.warning("⚠️ 請先輸入商品名稱或相關資訊，再啟動 AI 全流程！")
-
-st.markdown("---")
-
-# ============================================================
-# 4. 歷史記錄區塊
-# ============================================================
-st.subheader("🕒 歷史記錄")
-st.info("目前還沒有歷史記錄。")
-
-# ============================================================
-# 5. 頁尾資訊
-# ============================================================
-st.markdown("---")
-st.caption(
-    "🖤 黑金剛 AI 多 AI 電商總控中心 PRO  \n商品真實性優先 | AI 主控 | 電商內容工作流"
-)
+st.caption("🖤 黑金剛 AI 多 AI 電商總控中心 PRO  \n商品真實性優先 | AI 主控 | 電商內容工作流")
