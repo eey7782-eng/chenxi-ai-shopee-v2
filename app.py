@@ -1,29 +1,22 @@
 # ============================================================
-# 黑金剛 AI 電商總控中心 PRO - 完整版主程式 (app.py)
+# 黑金剛 AI 電商總控中心 PRO - 蝦皮上傳與自動化模式 (app.py)
 # ============================================================
 
 from pathlib import Path
-import io
-from PIL import Image, ImageOps
 import streamlit as st
-
-# 嘗試支援 AVIF 格式解碼（若環境無此套件則略過並使用基本防護）
-try:
-  import pillow_heif
-
-  pillow_heif.register_heif_opener()
-except ImportError:
-  pass
 
 # 設定網頁版面
 st.set_page_config(
     page_title="黑金剛 AI 電商總控中心 PRO", page_icon="🦍", layout="centered"
 )
 
+st.title("🦍 黑金剛 AI 電商總控中心 PRO")
+st.caption("商品真實性優先 | AI 主控 | 蝦皮自動化上架工作流")
+
 # ============================================================
 # 1. 預估利潤率計算區塊
 # ============================================================
-st.markdown("### 💰 預估利潤率")
+st.markdown("### 💰 預估利潤率計算")
 col1, col2 = st.columns(2)
 with col1:
   cost_price = st.number_input("商品成本 (NT$)", min_value=0.0, value=0.0, step=10.0)
@@ -42,143 +35,63 @@ else:
 st.markdown("---")
 
 # ============================================================
-# 2. 商品圖片｜蝦皮上傳圖片規格處理函數
+# 2. 蝦皮上傳模式｜改用「商品網址 / 圖片連結 / 文字」輸入（避開手機上傳限制）
 # ============================================================
+st.subheader("🛒 蝦皮商品資訊模式")
 
-
-def prepare_shopee_image(uploaded_file, output_size=1000):
-  """將上傳的圖片轉換為蝦皮 1:1 標準 JPG 格式"""
-  raw = uploaded_file.getvalue()
-  original = Image.open(io.BytesIO(raw))
-
-  # 修正 EXIF 方向
-  original = ImageOps.exif_transpose(original)
-
-  # 處理透明背景（轉純白底）
-  if original.mode in ("RGBA", "LA") or (
-      original.mode == "P" and "transparency" in original.info
-  ):
-    background = Image.new("RGB", original.size, (255, 255, 255))
-    if original.mode != "RGBA":
-      original = original.convert("RGBA")
-    background.paste(original, mask=original.getchannel("A"))
-    original = background
-  else:
-    original = original.convert("RGB")
-
-  # 建立 1:1 正方形白底畫布
-  width, height = original.size
-  max_side = max(width, height)
-  canvas = Image.new("RGB", (max_side, max_side), (255, 255, 255))
-
-  x = (max_side - width) // 2
-  y = (max_side - height) // 2
-  canvas.paste(original, (x, y))
-
-  # 調整大小
-  canvas = canvas.resize((output_size, output_size), Image.Resampling.LANCZOS)
-
-  # 輸出標準 JPEG
-  output = io.BytesIO()
-  canvas.save(output, format="JPEG", quality=95, optimize=True, progressive=True)
-  output.seek(0)
-
-  return canvas, output.getvalue()
-
-
-# ============================================================
-# 3. 商品圖片上傳介面 (已解鎖 AVIF / WEBP 支援)
-# ============================================================
-st.subheader("🖼️ 商品圖片")
-
-image_size = st.selectbox(
-    "蝦皮商品圖片輸出尺寸",
-    ["1000 × 1000 px", "1200 × 1200 px", "800 × 800 px"],
-    index=0,
-)
-size_map = {"1000 × 1000 px": 1000, "1200 × 1200 px": 1200, "800 × 800 px": 800}
-output_size = size_map[image_size]
-
-# 關鍵修正：完整支援 JPG, JPEG, PNG, WEBP, AVIF
-uploaded_file = st.file_uploader(
-    "上傳商品圖檔 JPG / JPEG / PNG / WEBP / AVIF",
-    type=["jpg", "jpeg", "png", "webp", "avif"],
-    help="上傳後系統會自動解碼並轉成蝦皮專用的 1:1 標準 JPG 格式。",
+shopee_input_mode = st.radio(
+    "選擇輸入方式", ["貼上蝦皮商品網址 / 圖片網址", "手動輸入商品資料"], index=0
 )
 
-if uploaded_file:
-  try:
-    # 預覽原始圖片
-    original_image = Image.open(io.BytesIO(uploaded_file.getvalue()))
-    original_image = ImageOps.exif_transpose(original_image)
+product_name = ""
+product_image_url = ""
+product_description = ""
 
-    st.markdown("### 📷 原始商品圖片")
-    st.image(
-        original_image,
-        caption=(
-            f"原始格式: {original_image.format} ｜ 尺寸:"
-            f" {original_image.width} × {original_image.height}px"
-        ),
-        use_container_width=True,
-    )
-
-    # 轉換為蝦皮規格
-    shopee_image, shopee_bytes = prepare_shopee_image(uploaded_file, output_size)
-
-    st.markdown("### 🛒 蝦皮上傳專用圖 (JPG)")
-    st.image(
-        shopee_image,
-        caption=(
-            f"蝦皮版本 ｜ {output_size} × {output_size}px ｜ JPEG (JPG) ｜ 1:1"
-        ),
-        use_container_width=True,
-    )
-
-    st.success(f"✅ 成功轉換為蝦皮標準 JPG 格式：{output_size} × {output_size}px")
-
-    # 下載按鈕
-    file_name = Path(uploaded_file.name).stem
-    shopee_file_name = f"{file_name}_shopee_{output_size}x{output_size}.jpg"
-
-    st.download_button(
-        label="⬇️ 下載蝦皮專用 JPG 圖片",
-        data=shopee_bytes,
-        file_name=shopee_file_name,
-        mime="image/jpeg",
-        use_container_width=True,
-    )
-
-  except Exception as e:
-    st.error(f"❌ 圖片處理失敗：{e}")
+if shopee_input_mode == "貼上蝦皮商品網址 / 圖片網址":
+  product_image_url = st.text_input(
+      "🔗 貼上商品圖片網址 (Image URL)",
+      placeholder="請貼上圖片網址（例如從瀏覽器複製的圖片連結）",
+  )
+  product_name = st.text_input("📦 商品名稱 / 關鍵字", placeholder="例如：史努比寬鬆短T恤")
+  
+  if product_image_url:
+    st.image(product_image_url, caption="預覽商品圖片", use_container_width=True)
 
 else:
-  st.info("請上傳商品圖片，系統將自動處理為蝦皮合規格式。")
+  product_name = st.text_input("📦 商品名稱", placeholder="例如：史努比寬鬆短T恤")
+  product_description = st.text_area("📝 商品規格/特色描述", placeholder="請輸入材質、尺寸、顏色等特點...")
 
 st.markdown("---")
 
 # ============================================================
-# 4. 啟動 AI 全流程按鈕
+# 3. 啟動黑金剛 AI 商品全流程
 # ============================================================
 if st.button(
     "🚀 啟動黑金剛 AI 商品全流程", type="primary", use_container_width=True
 ):
-  if uploaded_file:
-    with st.spinner("🦍 黑金剛 AI 正在執行：圖文分析 ➡️ 文案生成 ➡️ 系統歸檔..."):
-      # 這裡未來可直接對接你的 n8n Webhook 或 Gemini / OpenAI API
-      st.success("✅ AI 全流程執行完畢！商品文案與資料已成功建立。")
+  if product_name:
+    with st.spinner("🦍 黑金剛 AI 正在執行：商品解析 ➡️ 行銷文案生成 ➡️ 系統歸檔..."):
+      # 這裡可以直接對接你的 n8n 或 AI 模型
+      st.success(f"✅ 成功為【{product_name}】生成蝦皮聯盟行銷與上架內容！")
+      
+      with st.expander("✨ AI 生成的蝦皮推廣文案預覽", expanded=True):
+        st.markdown(f"**【爆款推薦】{product_name}**")
+        st.markdown("🔥 質感超好、舒適透氣，粉絲強力推薦必備款！")
+        st.markdown("🛒 立即搶購：[請在此填入你的蝦皮分潤短連結]")
+        st.markdown("#蝦皮購物 #好物推薦 #穿搭必備 #聯盟行銷")
   else:
-    st.warning("⚠️ 請先上傳商品圖片，再啟動 AI 全流程！")
+    st.warning("⚠️ 請先輸入商品名稱或相關資訊，再啟動 AI 全流程！")
 
 st.markdown("---")
 
 # ============================================================
-# 5. 歷史記錄區塊
+# 4. 歷史記錄區塊
 # ============================================================
 st.subheader("🕒 歷史記錄")
 st.info("目前還沒有歷史記錄。")
 
 # ============================================================
-# 6. 頁尾資訊
+# 5. 頁尾資訊
 # ============================================================
 st.markdown("---")
 st.caption(
