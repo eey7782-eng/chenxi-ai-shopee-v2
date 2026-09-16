@@ -1,5 +1,5 @@
 # ============================================================
-# 10. 商品圖片｜蝦皮上傳圖片規格處理 (強制輸出 JPG)
+# 10. 商品圖片｜蝦皮上傳圖片規格處理 (支援 AVIF 轉 JPG)
 # ============================================================
 
 from PIL import Image, ImageOps
@@ -7,11 +7,18 @@ import io
 from pathlib import Path
 import streamlit as st
 
+# 確保 pillow 支援 avif 格式（部分環境需要 register，若無 pillow-heif 可省略但加上 try/except 保護）
+try:
+    import pillow_heif
+    pillow_heif.register_heif_opener()
+except ImportError:
+    pass
+
 
 def prepare_shopee_image(uploaded_file, output_size=1000):
     """
-    將使用者上傳的商品圖片轉換成適合蝦皮商品圖使用的格式，
-    並強制轉為標準 JPG / JPEG 格式。
+    將使用者上傳的商品圖片（支援 JPG, PNG, WEBP, AVIF 等）
+    轉換成適合蝦皮商品圖使用的 1:1 標準 JPG 格式。
     """
 
     raw = uploaded_file.getvalue()
@@ -21,17 +28,15 @@ def prepare_shopee_image(uploaded_file, output_size=1000):
     original = ImageOps.exif_transpose(original)
 
     # ========================================================
-    # 處理透明通道（如 PNG 轉白底 JPG）
+    # 處理透明通道與格式轉換（轉成 RGB 白底）
     # ========================================================
     if original.mode in ("RGBA", "LA") or (original.mode == "P" and "transparency" in original.info):
-        # 如果有透明背景，貼到純白畫布上避免變黑
         background = Image.new("RGB", original.size, (255, 255, 255))
         if original.mode != "RGBA":
             original = original.convert("RGBA")
         background.paste(original, mask=original.getchannel("A"))
         original = background
     else:
-        # 其他模式一律轉成標準 RGB
         original = original.convert("RGB")
 
     # ========================================================
@@ -66,8 +71,8 @@ def prepare_shopee_image(uploaded_file, output_size=1000):
 
     canvas.save(
         output,
-        format="JPEG",  # 強制指定格式為 JPEG
-        quality=95,     # 高畫質品質
+        format="JPEG",  # 強制轉為 JPG
+        quality=95,
         optimize=True,
         progressive=True,
     )
@@ -78,11 +83,11 @@ def prepare_shopee_image(uploaded_file, output_size=1000):
 
 
 # ============================================================
-# 蝦皮圖片尺寸選擇與介面
+# 介面：圖片尺寸選擇與上傳
 # ============================================================
 
 st.markdown("---")
-st.subheader("🖼️ 商品圖片｜蝦皮上傳規格 (強制 JPG)")
+st.subheader("🖼️ 商品圖片｜蝦皮上傳規格 (支援 AVIF 轉 JPG)")
 
 image_size = st.selectbox(
     "蝦皮商品圖片輸出尺寸",
@@ -102,72 +107,61 @@ size_map = {
 
 output_size = size_map[image_size]
 
-
+# 關鍵修正：將 type 加入 "avif" 讓介面允許上傳
 uploaded_file = st.file_uploader(
-    "上傳商品原始圖片",
+    "上傳商品圖片 (JPG / JPEG / PNG / WEBP / AVIF)",
     type=[
         "jpg",
         "jpeg",
         "png",
         "webp",
+        "avif",
     ],
-    help="上傳後系統會自動轉為 1:1 正方形的 JPG 格式。",
+    help="上傳後系統會自動將各種格式（含 AVIF）轉為蝦皮專用的 1:1 標準 JPG 格式。",
 )
 
 
 if uploaded_file:
 
-    # ========================================================
-    # 原始圖片預覽
-    # ========================================================
-
-    st.markdown("### 📷 原始商品圖片")
-
-    original_image = Image.open(
-        io.BytesIO(uploaded_file.getvalue())
-    )
-
-    original_image = ImageOps.exif_transpose(original_image)
-
-    st.image(
-        original_image,
-        caption=f"原始圖片｜格式: {original_image.format} ｜ {original_image.width} × {original_image.height}px",
-        use_container_width=True,
-    )
-
-    # ========================================================
-    # 蝦皮規格轉換 (轉 JPG)
-    # ========================================================
-
     try:
+        # ========================================================
+        # 原始圖片預覽
+        # ========================================================
+        original_image = Image.open(io.BytesIO(uploaded_file.getvalue()))
+        original_image = ImageOps.exif_transpose(original_image)
 
+        st.markdown("### 📷 原始商品圖片")
+        st.image(
+            original_image,
+            caption=f"原始格式: {original_image.format} ｜ 尺寸: {original_image.width} × {original_image.height}px",
+            use_container_width=True,
+        )
+
+        # ========================================================
+        # 轉換為蝦皮 JPG 規格
+        # ========================================================
         shopee_image, shopee_bytes = prepare_shopee_image(
             uploaded_file,
             output_size,
         )
 
-        st.markdown("### 🛒 蝦皮上傳圖片 (JPG)")
-
+        st.markdown("### 🛒 蝦皮上傳專用圖 (JPG)")
         st.image(
             shopee_image,
-            caption=f"蝦皮版本｜{output_size} × {output_size}px ｜ 格式: JPEG (JPG) ｜ 1:1",
+            caption=f"蝦皮版本 ｜ {output_size} × {output_size}px ｜ JPEG (JPG) ｜ 1:1",
             use_container_width=True,
         )
 
         st.success(
-            f"✅ 已成功轉為蝦皮標準 JPG 商品圖："
-            f"{output_size} × {output_size}px / JPG / RGB / 1:1"
+            f"✅ 成功將圖片轉換為蝦皮標準 JPG 格式："
+            f"{output_size} × {output_size}px / RGB / 1:1"
         )
 
         # ====================================================
-        # 下載按鈕 (強制 .jpg)
+        # 下載按鈕
         # ====================================================
-
         file_name = Path(uploaded_file.name).stem
-
-        shopee_file_name = (
-            f"{file_name}_shopee_{output_size}x{output_size}.jpg"
-        )
+        shopee_file_name = f"{file_name}_shopee_{output_size}x{output_size}.jpg"
 
         st.download_button(
             label="⬇️ 下載蝦皮專用 JPG 圖片",
@@ -177,37 +171,11 @@ if uploaded_file:
             use_container_width=True,
         )
 
-        # ====================================================
-        # 圖片規格檢查
-        # ====================================================
-
-        with st.expander("🔍 圖片規格檢查"):
-
-            st.write(
-                f"原始尺寸：{original_image.width} × {original_image.height}px"
-            )
-
-            st.write(
-                f"輸出尺寸：{output_size} × {output_size}px"
-            )
-
-            st.write("比例：1:1 正方形")
-
-            st.write("格式：JPEG (.jpg)")
-
-            st.write("色彩模式：RGB (自動處理透明背景轉白底)")
-
-            st.write("用途：蝦皮商品圖片上傳")
-
     except Exception as e:
-
-        st.error(
-            f"❌ 圖片處理失敗：{e}"
-        )
+        st.error(f"❌ 圖片處理失敗（可能是 AVIF 解碼需要安裝額外套件）：{e}")
 
 else:
-
     st.info(
-        "請先上傳商品圖片（支援 JPG、PNG、WEBP），"
+        "請上傳商品圖片（支援 JPG、PNG、WEBP、AVIF），"
         "系統會自動幫您轉成符合蝦皮規範的 1:1 標準 JPG 格式。"
     )
