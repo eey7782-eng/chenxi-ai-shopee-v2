@@ -8,8 +8,8 @@ from PIL import Image
 # 0. APP 基本設定 (全白清爽介面)
 # =====================================================================
 
-APP_NAME = "黑金剛 AI 電商總控中心 PRO"
-APP_VERSION = "5.5"
+APP_NAME = "黑金剛 AI 商業自動化總控台 PRO"
+APP_VERSION = "6.0"
 
 DATA_DIR = Path("data")
 HISTORY_DIR = DATA_DIR / "history"
@@ -25,7 +25,7 @@ st.set_page_config(
 )
 
 # =====================================================================
-# 1. 簡約白底 CSS 樣式
+# 1. 簡約白底與卡片 CSS 樣式
 # =====================================================================
 
 st.markdown(
@@ -50,12 +50,12 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 800;
     letter-spacing: 1px;
 }
-.clean-card {
+.result-card {
     background: #F9FAFB;
     border: 1px solid #E5E7EB;
     border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
 }
 </style>
 """,
@@ -69,8 +69,8 @@ h1, h2, h3, h4, h5, h6 {
 if "last_result" not in st.session_state:
     st.session_state.last_result = None
 
-if "processed_image" not in st.session_state:
-    st.session_state.processed_image = None
+if "processed_images" not in st.session_state:
+    st.session_state.processed_images = []
 
 # =====================================================================
 # 3. Gemini API 設定
@@ -105,69 +105,116 @@ def get_gemini_client():
         return None
 
 # =====================================================================
-# 4. 側邊欄與功能切換
+# 4. 側邊欄與功能模式
 # =====================================================================
 
 st.sidebar.title("⚡ 控制台選單")
-mode = st.sidebar.radio("選擇功能模式", ["🚀 AI 商品與影音總控台", "🛍️ 買家極速導購前台"])
+mode = st.sidebar.radio("選擇功能模式", ["🚀 AI 跨平台行銷自動化", "🛍️ 買家極速導購前台"])
 
-if mode == "🚀 AI 商品與影音總控台":
+if mode == "🚀 AI 跨平台行銷自動化":
     st.markdown(f"<h1 class='gold-title'>{APP_NAME} v{APP_VERSION}</h1>", unsafe_allow_html=True)
-    st.caption("結合 Gemini AI，一鍵生成蝦皮 SEO 文案、TikTok 爆款腳本與多模態影音指令！")
+    st.caption("多圖智慧辨識 × 蝦皮電商 SEO × Threads 流量引流 × 短影音腳本全自動生成")
     st.markdown("---")
 
-    col1, col2 = st.columns([1, 1])
+    col1, col2 = st.columns([1, 1], gap="large")
 
     with col1:
-        st.subheader("📦 商品資訊輸入")
-        product_name = st.text_input("商品名稱", placeholder="例如：Snoopy 史努比寬鬆短T")
-        category = st.selectbox("商品分類", ["3C電子", "服飾鞋包", "居家生活", "美妝保養", "食品飲料", "其他"])
-        price = st.text_input("售價 (NT$)", placeholder="399")
-        product_link = st.text_input("蝦皮商品/分潤連結", placeholder="https://s.shopee.tw/...")
+        st.subheader("📦 商品與行銷資訊輸入")
         
-        # 允許上傳任意格式圖片
-        uploaded_file = st.file_uploader(
-            "上傳商品圖片 (支援所有格式，系統自動最佳化)", 
-            type=None
+        product_name = st.text_input("商品名稱", placeholder="例如：Snoopy 史努比寬鬆落肩短T")
+        
+        c_col1, c_col2 = st.columns(2)
+        with c_col1:
+            category = st.selectbox("商品分類", ["服飾鞋包", "3C電子", "居家生活", "美妝保養", "食品飲料", "其他"])
+        with c_col2:
+            price = st.text_input("售價 (NT$)", placeholder="399")
+
+        key_selling_points = st.text_area(
+            "核心賣點 / 促銷優惠 (選填)", 
+            placeholder="例如：100%純棉、重磅耐磨、現在下單送同款襪子、滿千免運"
         )
         
-        if uploaded_file is not None:
-            try:
-                # 讀取圖片並自動轉為標準 RGB 格式以防相容性問題
-                image_bytes = uploaded_file.getvalue()
-                image = Image.open(io.BytesIO(image_bytes))
-                if image.mode in ("RGBA", "P"):
-                    image = image.convert("RGB")
-                
-                # 暫存處理好的圖片物件
-                st.session_state.processed_image = image
-                st.image(image, caption="✅ 圖片上傳並最佳化成功", use_column_width=True)
-            except Exception as e:
-                st.error(f"⚠️ 圖片解析發生錯誤: {e}")
-                st.session_state.processed_image = None
+        product_link = st.text_input("蝦皮商品/分潤導購連結", placeholder="https://s.shopee.tw/...")
+        
+        # 多圖上傳支援
+        uploaded_files = st.file_uploader(
+            "上傳商品多角度照片 (支援多張：正面、細節、情境照等)", 
+            type=None,
+            accept_multiple_files=True
+        )
+        
+        st.session_state.processed_images = []
+        if uploaded_files:
+            st.write(f"✅ 已成功上傳 {len(uploaded_files)} 張圖片：")
+            img_cols = st.columns(min(len(uploaded_files), 3))
+            for idx, file in enumerate(uploaded_files):
+                try:
+                    img_bytes = file.getvalue()
+                    image = Image.open(io.BytesIO(img_bytes))
+                    if image.mode in ("RGBA", "P"):
+                        image = image.convert("RGB")
+                    st.session_state.processed_images.append(image)
+                    with img_cols[idx % 3]:
+                        st.image(image, caption=f"圖 {idx+1}", use_column_width=True)
+                except Exception as e:
+                    st.warning(f"⚠️ 圖 {idx+1} 解析提示: {e}")
 
     with col2:
-        st.subheader("⚙️ 行銷與生成設定")
-        tone = st.selectbox("文案風格語氣", ["Z世代真實推薦", "高級質感電商", "強導購降價風", "幽默毒舌避雷"])
-        platforms = st.multiselect("發布平台", ["蝦皮", "TikTok", "Instagram", "Threads"], default=["蝦皮", "Threads"])
+        st.subheader("⚙️ 自動化生成配置")
+        tone = st.selectbox(
+            "文案風格語氣", 
+            ["Z世代真實推薦 (帶有共鳴與微毒舌)", "高級質感電商 (強調美學與生活風格)", "強導購降價風 (限時搶購、促銷刺激)", "幽默搞笑吐槽風"]
+        )
         
-        if st.button("🚀 開始執行 AI 多模態生成", use_container_width=True):
+        target_audience = st.text_input("目標客群 (Target Audience)", placeholder="例如：大學生、情侶裝、喜歡休閒穿搭的年輕人")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        if st.button("🚀 開始執行全自動 AI 素材生成", use_container_width=True):
             api_key = get_api_key()
             if not api_key:
                 st.error("❌ 尚未設定 GEMINI_API_KEY，請至 Streamlit Secrets 設定金鑰。")
             elif not product_name:
                 st.warning("⚠️ 請至少輸入商品名稱！")
             else:
-                with st.spinner("🤖 黑金剛 AI 正在深度分析商品與生成全套素材..."):
+                with st.spinner("🤖 黑金剛 AI 正在進行多模態深度解析並撰寫跨平台行銷套組..."):
                     client = get_gemini_client()
-                    prompt = f"請為商品「{product_name}」（分類：{category}，售價：{price}）生成繁體中文的蝦皮 SEO 標題、商品描述、Threads 爆款文案以及 30 秒短影音腳本。風格為：{tone}。"
                     
+                    # 精準結構化 Prompt，要求分流輸出
+                    prompt = f"""
+請扮演頂級的電商營運長與社群行銷總監。針對以下商品進行深度分析，並產出繁體中文的「跨平台行銷自動化套組」。
+
+【商品資訊】
+- 名稱：{product_name}
+- 分類：{category}
+- 售價：NT$ {price if price else '未定'}
+- 核心賣點/促銷：{key_selling_points if key_selling_points else '無特別指定'}
+- 目標客群：{target_audience if target_audience else '大眾市場'}
+- 風格語氣：{tone}
+
+請嚴格按照以下三大區塊輸出內容（請使用 Markdown 標題分隔）：
+
+# 1. 🛒 蝦皮 / 網拍平台 SEO 專用文案
+- **SEO 吸引人標題**（內含高流量搜尋關鍵字）
+- **賣點介紹與規格亮點**（條列式優勢）
+- **安心保障與下單引導**
+
+# 2. 📱 Threads / IG 爆款引流貼文
+- 抓眼球的開頭（結合風格語氣）
+- 能夠引起互動、留言「+1」或私訊的高共鳴內文
+- 建議標籤 (Hashtags)
+
+# 3. 🎬 TikTok / Reels 30秒短影音腳本
+- **秒數與畫面設定** (0-3秒黃金吸睛畫面)
+- **口語化旁白與對白**
+- **字幕與音樂風格建議**
+"""
                     try:
                         if client:
-                            # 準備傳遞給 Gemini 的內容
                             contents = [prompt]
-                            if st.session_state.processed_image is not None:
-                                contents.append(st.session_state.processed_image)
+                            # 將所有上傳的照片加入多模態輸入清單
+                            if st.session_state.processed_images:
+                                contents.extend(st.session_state.processed_images)
                             
                             response = client.models.generate_content(
                                 model=GEMINI_MODEL,
@@ -178,15 +225,15 @@ if mode == "🚀 AI 商品與影音總控台":
                             raise RuntimeError("Gemini Client 初始化失敗，請檢查 API Key")
 
                         st.session_state.last_result = result_text
-                        st.success("🎉 生成完畢！")
+                        st.success("🎉 全平台行銷套組生成完畢！")
                     except Exception as e:
                         st.error(f"❌ 呼叫 AI 發生錯誤: {e}")
 
-    # 顯示結果
+    # 顯示結構化成果輸出
     if st.session_state.last_result:
         st.markdown("---")
-        st.subheader("📊 AI 生成成果輸出")
-        st.markdown(f"<div class='clean-card'>{st.session_state.last_result}</div>", unsafe_allow_html=True)
+        st.subheader("📊 AI 商業自動化生成成果")
+        st.markdown(f"<div class='result-card'>{st.session_state.last_result}</div>", unsafe_allow_html=True)
 
 elif mode == "🛍️ 買家極速導購前台":
     st.markdown("<h2 style='text-align: center;'>🔥 精選好物導購</h2>", unsafe_allow_html=True)
@@ -197,6 +244,9 @@ elif mode == "🛍️ 買家極速導購前台":
     
     col_a, col_b = st.columns(2)
     with col_a:
-        st.markdown("### 🌟 熱銷好物範例")
-        st.write("精選高回購、高評價的優質商品。")
-        st.link_button("🛒 🛒 點擊前往蝦皮搶購", "https://s.shopee.tw/your_link", use_container_width=True)
+        st.markdown("### 🌟 熱銷好物範例：史努比寬鬆短T")
+        st.write("精選高回購、高評價的優質潮流服飾。")
+        if product_link:
+            st.link_button("🛒 點擊前往蝦皮搶購", product_link, use_container_width=True)
+        else:
+            st.link_button("🛒 點擊前往蝦皮搶購", "https://s.shopee.tw/your_link", use_container_width=True)
