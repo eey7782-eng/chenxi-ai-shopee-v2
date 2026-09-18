@@ -1,5 +1,5 @@
 import os
-import base64
+import io
 from pathlib import Path
 import streamlit as st
 from PIL import Image
@@ -9,7 +9,7 @@ from PIL import Image
 # =====================================================================
 
 APP_NAME = "黑金剛 AI 電商總控中心 PRO"
-APP_VERSION = "5.4"
+APP_VERSION = "5.5"
 
 DATA_DIR = Path("data")
 HISTORY_DIR = DATA_DIR / "history"
@@ -69,6 +69,9 @@ h1, h2, h3, h4, h5, h6 {
 if "last_result" not in st.session_state:
     st.session_state.last_result = None
 
+if "processed_image" not in st.session_state:
+    st.session_state.processed_image = None
+
 # =====================================================================
 # 3. Gemini API 設定
 # =====================================================================
@@ -122,19 +125,26 @@ if mode == "🚀 AI 商品與影音總控台":
         price = st.text_input("售價 (NT$)", placeholder="399")
         product_link = st.text_input("蝦皮商品/分潤連結", placeholder="https://s.shopee.tw/...")
         
-        # 移除格式限制（type=None），允許上傳任何規格/格式的圖片
+        # 允許上傳任意格式圖片
         uploaded_file = st.file_uploader(
-            "上傳商品圖片 (支援全規格/所有圖片格式)", 
+            "上傳商品圖片 (支援所有格式，系統自動最佳化)", 
             type=None
         )
         
         if uploaded_file is not None:
             try:
-                # 嘗試讀取並預覽圖片
-                image = Image.open(uploaded_file)
-                st.image(image, caption=f"已成功載入圖片: {uploaded_file.name}", use_column_width=True)
+                # 讀取圖片並自動轉為標準 RGB 格式以防相容性問題
+                image_bytes = uploaded_file.getvalue()
+                image = Image.open(io.BytesIO(image_bytes))
+                if image.mode in ("RGBA", "P"):
+                    image = image.convert("RGB")
+                
+                # 暫存處理好的圖片物件
+                st.session_state.processed_image = image
+                st.image(image, caption="✅ 圖片上傳並最佳化成功", use_column_width=True)
             except Exception as e:
-                st.info(f"💡 檔案已成功上傳（格式：{uploaded_file.name.split('.')[-1]}），AI 將直接進行深度多模態解析。")
+                st.error(f"⚠️ 圖片解析發生錯誤: {e}")
+                st.session_state.processed_image = None
 
     with col2:
         st.subheader("⚙️ 行銷與生成設定")
@@ -153,28 +163,20 @@ if mode == "🚀 AI 商品與影音總控台":
                     prompt = f"請為商品「{product_name}」（分類：{category}，售價：{price}）生成繁體中文的蝦皮 SEO 標題、商品描述、Threads 爆款文案以及 30 秒短影音腳本。風格為：{tone}。"
                     
                     try:
-                        if uploaded_file and client:
-                            uploaded_file.seek(0)  # 重置讀取指標
-                            image_bytes = uploaded_file.getvalue()
-                            image_b64 = base64.b64encode(image_bytes).decode("utf-8")
-                            mime_type = uploaded_file.type or "image/jpeg"
+                        if client:
+                            # 準備傳遞給 Gemini 的內容
+                            contents = [prompt]
+                            if st.session_state.processed_image is not None:
+                                contents.append(st.session_state.processed_image)
                             
-                            response = client.interactions.create(
+                            response = client.models.generate_content(
                                 model=GEMINI_MODEL,
-                                input=[
-                                    {"type": "text", "text": prompt},
-                                    {"type": "image", "data": image_b64, "mime_type": mime_type}
-                                ]
+                                contents=contents
                             )
-                        elif client:
-                            response = client.interactions.create(
-                                model=GEMINI_MODEL,
-                                input=prompt
-                            )
+                            result_text = getattr(response, "text", None) or str(response)
                         else:
-                            raise RuntimeError("Gemini Client 初始化失敗")
+                            raise RuntimeError("Gemini Client 初始化失敗，請檢查 API Key")
 
-                        result_text = getattr(response, "output_text", None) or str(response)
                         st.session_state.last_result = result_text
                         st.success("🎉 生成完畢！")
                     except Exception as e:
@@ -197,4 +199,4 @@ elif mode == "🛍️ 買家極速導購前台":
     with col_a:
         st.markdown("### 🌟 熱銷好物範例")
         st.write("精選高回購、高評價的優質商品。")
-        st.link_button("🛒 點擊前往蝦皮搶購", "https://s.shopee.tw/your_link", use_container_width=True)
+        st.link_button("🛒 🛒 點擊前往蝦皮搶購", "https://s.shopee.tw/your_link", use_container_width=True)
