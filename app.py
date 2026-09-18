@@ -5,11 +5,11 @@ import streamlit as st
 from PIL import Image
 
 # =====================================================================
-# 0. APP 基本設定 (改為全白清爽介面)
+# 0. APP 基本設定 (全白清爽介面)
 # =====================================================================
 
 APP_NAME = "黑金剛 AI 電商總控中心 PRO"
-APP_VERSION = "5.3"
+APP_VERSION = "5.4"
 
 DATA_DIR = Path("data")
 HISTORY_DIR = DATA_DIR / "history"
@@ -31,7 +31,6 @@ st.set_page_config(
 st.markdown(
     """
 <style>
-/* 整體背景改為白色 */
 .main {
     background-color: #FFFFFF;
 }
@@ -118,24 +117,24 @@ if mode == "🚀 AI 商品與影音總控台":
 
     with col1:
         st.subheader("📦 商品資訊輸入")
-        product_name = st.text_input("商品名稱", placeholder="例如：磁吸無線行動電源")
+        product_name = st.text_input("商品名稱", placeholder="例如：Snoopy 史努比寬鬆短T")
         category = st.selectbox("商品分類", ["3C電子", "服飾鞋包", "居家生活", "美妝保養", "食品飲料", "其他"])
-        price = st.text_input("售價 (NT$)", placeholder="299")
+        price = st.text_input("售價 (NT$)", placeholder="399")
         product_link = st.text_input("蝦皮商品/分潤連結", placeholder="https://s.shopee.tw/...")
         
-        # 修正照片上傳限制：支援 jpg, jpeg, png, webp, avif
+        # 移除格式限制（type=None），允許上傳任何規格/格式的圖片
         uploaded_file = st.file_uploader(
-            "上傳商品圖片 (支援 JPG, PNG, WEBP, AVIF)", 
-            type=["jpg", "jpeg", "png", "webp", "avif"]
+            "上傳商品圖片 (支援全規格/所有圖片格式)", 
+            type=None
         )
         
         if uploaded_file is not None:
             try:
-                # 預覽圖片確保讀取成功
+                # 嘗試讀取並預覽圖片
                 image = Image.open(uploaded_file)
-                st.image(image, caption="已成功載入商品圖片", use_column_width=True)
+                st.image(image, caption=f"已成功載入圖片: {uploaded_file.name}", use_column_width=True)
             except Exception as e:
-                st.error(f"⚠️ 圖片格式可能損毀或無法解析 ({e})，建議轉換為 JPG 或 PNG 後再上傳。")
+                st.info(f"💡 檔案已成功上傳（格式：{uploaded_file.name.split('.')[-1]}），AI 將直接進行深度多模態解析。")
 
     with col2:
         st.subheader("⚙️ 行銷與生成設定")
@@ -155,7 +154,7 @@ if mode == "🚀 AI 商品與影音總控台":
                     
                     try:
                         if uploaded_file and client:
-                            uploaded_file.seek(0)  # 重置指標
+                            uploaded_file.seek(0)  # 重置讀取指標
                             image_bytes = uploaded_file.getvalue()
                             image_b64 = base64.b64encode(image_bytes).decode("utf-8")
                             mime_type = uploaded_file.type or "image/jpeg"
@@ -198,4 +197,4 @@ elif mode == "🛍️ 買家極速導購前台":
     with col_a:
         st.markdown("### 🌟 熱銷好物範例")
         st.write("精選高回購、高評價的優質商品。")
-        st.link_button("🛒 點擊前往蝦皮搶購", "https://s.shopee.tw/your_link", use_column_width=True)
+        st.link_button("🛒 點擊前往蝦皮搶購", "https://s.shopee.tw/your_link", use_container_width=True)
