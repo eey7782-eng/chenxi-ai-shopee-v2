@@ -11,7 +11,7 @@ from PIL import Image
 # =====================================================================
 
 APP_NAME = "黑金剛 AI 商業自動化總控台 PRO"
-APP_VERSION = "7.3"
+APP_VERSION = "7.4"
 
 DATA_DIR = Path("data")
 HISTORY_DIR = DATA_DIR / "history"
@@ -202,7 +202,8 @@ if mode == "🚀 圖片辨識與行銷總控台":
                 if image.mode in ("RGBA", "P"):
                     image = image.convert("RGB")
                 st.session_state.processed_image = image
-                st.image(image, caption="✅ 圖片已成功載入", use_column_width=True)
+                # !!! 修復點：將 use_column_width 改為 use_container_width !!!
+                st.image(image, caption="✅ 圖片已成功載入", use_container_width=True)
             except Exception as e:
                 st.warning(f"⚠️ 圖片解析提示: {e}")
                 st.session_state.processed_image = None
@@ -216,6 +217,10 @@ if mode == "🚀 圖片辨識與行銷總控台":
             else:
                 with st.spinner("🤖 AI 正在深度辨識商品圖片與價格/特徵..."):
                     client = get_gemini_client()
+                    if not client:
+                        st.error("❌ Gemini Client 初始化失敗，請檢查 API 金鑰設定。")
+                        st.stop()
+
                     parse_prompt = """
 請分析這張商品圖片，並以嚴格的 JSON 格式回傳以下欄位（不要包在 markdown code block 裡，直接回傳純 JSON）：
 {
@@ -253,32 +258,17 @@ if mode == "🚀 圖片辨識與行銷總控台":
         
         c_col1, c_col2 = st.columns(2)
         with c_col1:
-            category = st.selectbox("商品分類", ["服飾鞋包", "3C電子", "居家生活", "美妝保養", "食品飲料", "其他"], index=["服飾鞋包", "3C電子", "居家生活", "美妝保養", "食品飲料", "其他"].index(st.session_state.auto_category) if st.session_state.auto_category in ["服飾鞋包", "3C電子", "居家生活", "美妝保養", "食品飲料", "其他"] else 0)
+            category = st.selectbox("商品分類", ["服飾鞋包", "3C電子", "居家生活", "美妝保養", "食品飲料", "Other"], index=["服飾鞋包", "3C電子", "居家生活", "美妝保養", "食品飲料", "Other"].index(st.session_state.auto_category) if st.session_state.auto_category in ["服飾鞋包", "3C電子", "居家生活", "美妝保養", "食品飲料", "Other"] else 0)
         with c_col2:
             price = st.text_input("售價 (NT$)", value=st.session_state.auto_price, placeholder="自動填入售價")
 
         key_selling_points = st.text_area(
             "核心賣點 / 促銷優惠", 
-            value=st.session_state.auto_selling_points,
-            placeholder="AI 自動填入的特徵與賣點..."
-        )
-        
-        st.session_state.product_link = st.text_input("分潤導購連結 (同步至前台商城)", value=st.session_state.product_link)
-        
-        tone = st.selectbox(
-            "文案風格語氣", 
-            ["Z世代真實推薦 (微毒舌共鳴)", "高級質感電商", "強導購降價風"]
-        )
-        
-        if st.button("🚀 產出完整跨平台行銷文案套組", use_container_width=True):
-            api_key = get_api_key()
-            if not api_key:
-                st.error("❌ 尚未設定 GEMINI_API_KEY")
-            elif not product_name:
-                st.warning("⚠️ 請先確保商品名稱已填入！")
-            else:
-                with st.spinner("🤖 正在為您生成各平台文案並自動歸檔..."):
-                    client = get_gemini_client()
+            value=st.session_state.gemini_client()
+                    if not client:
+                         st.error("❌ Gemini Client 初始化失敗，請檢查 API 金鑰設定。")
+                         st.stop()
+
                     prompt = f"""
 請針對商品「{product_name}」（分類：{category}，售價：NT${price}，賣點：{key_selling_points}，風格：{tone}）生成：
 1. 🛒 蝦皮 SEO 賣場文案
@@ -320,20 +310,4 @@ elif mode == "🛍️ 買家極速導購前台":
     st.markdown("<p style='text-align: center; color: gray;'>無腦直達，嚴選優質好物，點擊立即搶購</p>", unsafe_allow_html=True)
     st.markdown("---")
 
-    col_shop1, col_shop2 = st.columns([1, 1], gap="large")
-    
-    with col_shop1:
-        if st.session_state.processed_image is not None:
-            st.image(st.session_state.processed_image, caption=st.session_state.auto_name or "精選主打商品", use_column_width=True)
-        else:
-            st.info("💡 目前後台尚未上傳商品圖片，此處展示預設商品。")
-            
-    with col_shop2:
-        st.markdown(f"### 🌟 {st.session_state.auto_name or 'Snoopy 史努比質感潮流短T'}")
-        st.markdown(f"**分類**：{st.session_state.auto_category}")
-        st.markdown(f"**特惠價**：<span style='color: #D97706; font-size: 24px; font-weight: bold;'>NT$ {st.session_state.auto_price or '399'}</span>", unsafe_allow_html=True)
-        st.markdown(f"**商品特色**：\n{st.session_state.auto_selling_points or '100%純棉、重磅耐磨、百搭日常首選。'}")
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        target_url = st.session_state.product_link if st.session_state.product_link else "https://s.shopee.tw/your_link"
-        st.link_button("🛒 立即前往蝦皮搶購 (賺取分潤)", target_url, use_container_width=True)
+    col_shop1, col_shop
