@@ -11,7 +11,7 @@ from PIL import Image
 # =====================================================================
 
 APP_NAME = "黑金鋼 AI 商業自動化總控台 PRO"
-APP_VERSION = "7.9"
+APP_VERSION = "7.10"
 
 DATA_DIR = Path("data")
 HISTORY_DIR = DATA_DIR / "history"
@@ -92,15 +92,15 @@ def load_all_histories():
     return records
 
 # =====================================================================
-# 4. API 設定與強固型客戶端初始化
+# 4. API 設定與穩健型初始化 (使用傳統 google-generativeai)
 # =====================================================================
 
 try:
-    from google import genai
+    import google.generativeai as genai
 except ImportError:
     genai = None
 
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-1.5-flash"
 
 def get_api_key():
     key = ""
@@ -123,16 +123,10 @@ def get_gemini_client():
     if not api_key:
         return None
     try:
-        # 優先嘗試新版 SDK Client 初始化
-        return genai.Client(api_key=api_key)
-    except Exception:
-        try:
-            # 相容性備援機制
-            import google.generativeai as fallback_genai
-            fallback_genai.configure(api_key=api_key)
-            return fallback_genai
-        except Exception:
-            return None
+        genai.configure(api_key=api_key)
+        return genai
+    except Exception as e:
+        return None
 
 # =====================================================================
 # 5. 側邊欄與功能模式
@@ -217,9 +211,9 @@ if mode == "🚀 圖片辨識與行銷總控台":
                 st.warning("⚠️ 請先從平板相簿上傳至少一張商品相片！")
             else:
                 with st.spinner("🤖 AI 正在深度辨識平板相片中的商品..."):
-                    client = get_gemini_client()
-                    if not client:
-                        st.error("❌ Gemini Client 初始化失敗。")
+                    genai_module = get_gemini_client()
+                    if not genai_module:
+                        st.error("❌ Gemini 初始化失敗，請檢查 API Key 或套件安裝。")
                         st.stop()
 
                     parse_prompt = """
@@ -233,12 +227,8 @@ if mode == "🚀 圖片辨識與行銷總控台":
 """
                     try:
                         contents = [parse_prompt] + st.session_state.processed_images_list
-                        # 相容新舊版 SDK 呼叫方式
-                        if hasattr(client, "models"):
-                            response = client.models.generate_content(model=GEMINI_MODEL, contents=contents)
-                        else:
-                            model = client.GenerativeModel(GEMINI_MODEL)
-                            response = model.generate_content(contents)
+                        model = genai_module.GenerativeModel(GEMINI_MODEL)
+                        response = model.generate_content(contents)
 
                         raw_text = getattr(response, "text", "").strip()
                         if raw_text.startswith("```json"): raw_text = raw_text[7:]
@@ -277,9 +267,9 @@ if mode == "🚀 圖片辨識與行銷總控台":
                 st.warning("⚠️ 請先填入商品名稱！")
             else:
                 with st.spinner("🤖 正在生成各平台文案並自動歸檔..."):
-                    client = get_gemini_client()
-                    if not client:
-                        st.error("❌ Gemini Client 初始化失敗。")
+                    genai_module = get_gemini_client()
+                    if not genai_module:
+                        st.error("❌ Gemini 初始化失敗，請檢查 API Key 或套件安裝。")
                         st.stop()
 
                     prompt = f"""
@@ -290,11 +280,8 @@ if mode == "🚀 圖片辨識與行銷總控台":
 """
                     try:
                         contents = [prompt] + (st.session_state.processed_images_list if st.session_state.processed_images_list else [])
-                        if hasattr(client, "models"):
-                            response = client.models.generate_content(model=GEMINI_MODEL, contents=contents)
-                        else:
-                            model = client.GenerativeModel(GEMINI_MODEL)
-                            response = model.generate_content(contents)
+                        model = genai_module.GenerativeModel(GEMINI_MODEL)
+                        response = model.generate_content(contents)
 
                         result_str = getattr(response, "text", "")
                         st.session_state.last_result = result_str
