@@ -92,7 +92,7 @@ def load_all_histories():
     return records
 
 # =====================================================================
-# 4. API 設定與金鑰硬編碼初始化
+# 4. API 設定與模型初始化（內建金鑰與防呆機制）
 # =====================================================================
 
 try:
@@ -103,19 +103,29 @@ except ImportError:
 GEMINI_MODEL = "gemini-1.5-flash"
 
 def get_api_key():
-    # 直接寫死您的 API 金鑰，免去額外設定 Secrets 的麻煩
-    return "AQ.Ab8RN6JllxZ97aktv4bCdM9FK8EDKYTPvrOXW0awvuGK-FxBtw"
+    # 優先讀取環境變數或 Secrets，若無則使用內建金鑰
+    try:
+        if hasattr(st, "secrets") and "GEMINI_API_KEY" in st.secrets:
+            return st.secrets["GEMINI_API_KEY"]
+    except Exception:
+        pass
+    
+    # 直接硬編碼金鑰，確保不依賴雲端設定也能運作
+    return "AQ.Ab8RN6LIluWT783b4gBoqEWFoSoaS5LZBtzOBbDeMFAz4u6dTg"
 
 def get_gemini_model():
     if genai is None:
+        st.error("❌ genai 模組未安裝！請檢查 requirements.txt")
         return None
     api_key = get_api_key()
     if not api_key:
+        st.error("❌ API 金鑰為空！")
         return None
     try:
         genai.configure(api_key=api_key)
         return genai.GenerativeModel(GEMINI_MODEL)
-    except Exception:
+    except Exception as e:
+        st.error(f"❌ 初始化詳細錯誤: {str(e)}")
         return None
 
 # =====================================================================
