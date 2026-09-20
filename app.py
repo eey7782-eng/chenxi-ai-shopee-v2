@@ -10,8 +10,8 @@ from PIL import Image
 # 0. APP 基本設定
 # =====================================================================
 
-APP_NAME = "黑金剛 AI 商業自動化總控台 PRO"
-APP_VERSION = "7.8"
+APP_NAME = "黑金鋼 AI 商業自動化總控台 PRO"
+APP_VERSION = "7.9"
 
 DATA_DIR = Path("data")
 HISTORY_DIR = DATA_DIR / "history"
@@ -92,7 +92,7 @@ def load_all_histories():
     return records
 
 # =====================================================================
-# 4. API 設定與金鑰讀取
+# 4. API 設定與強固型客戶端初始化
 # =====================================================================
 
 try:
@@ -123,9 +123,16 @@ def get_gemini_client():
     if not api_key:
         return None
     try:
+        # 優先嘗試新版 SDK Client 初始化
         return genai.Client(api_key=api_key)
     except Exception:
-        return None
+        try:
+            # 相容性備援機制
+            import google.generativeai as fallback_genai
+            fallback_genai.configure(api_key=api_key)
+            return fallback_genai
+        except Exception:
+            return None
 
 # =====================================================================
 # 5. 側邊欄與功能模式
@@ -167,21 +174,21 @@ else:
 
 if mode == "🚀 圖片辨識與行銷總控台":
     st.markdown(f"<h1 class='gold-title'>{APP_NAME} v{APP_VERSION}</h1>", unsafe_allow_html=True)
-    st.caption("平板相簿多選 ＋ 智慧辨識填空 ＋ 跨平台行銷套組")
+    st.caption("平板相簿多選 ＋ 智慧辨識填空 ＋ 跨平台行銷套組 ＋ 歷史自動歸檔")
     st.markdown("---")
 
     current_key = get_api_key()
     if not current_key:
-        st.error("❌ 尚未設定 GEMINI_API_KEY！請至 Streamlit Secrets 檢查。")
+        st.error("❌ 尚未設定 GEMINI_API_KEY！請至 Streamlit Secrets 檢查設定。")
     else:
-        st.success("✅ GEMINI_API_KEY 已連線！")
+        st.success("✅ GEMINI_API_KEY 已順利連線！")
 
     col1, col2 = st.columns([1, 1], gap="large")
 
     with col1:
         st.subheader("🖼️ 1. 從平板相簿選取商品相片")
         uploaded_files = st.file_uploader(
-            "選擇或拖曳相片檔案 (支援多選)", 
+            "選擇或拖曳相片檔案 (支援平板多張相片選取)", 
             type=["jpg", "jpeg", "png", "webp", "heic"], 
             accept_multiple_files=True
         )
@@ -200,16 +207,16 @@ if mode == "🚀 圖片辨識與行銷總控台":
             
             if st.session_state.processed_images_list:
                 st.session_state.processed_image = st.session_state.processed_images_list[0]
-                st.markdown(f"**已成功載入 {len(st.session_state.processed_images_list)} 張相片**")
+                st.markdown(f"**已成功載入 {len(st.session_state.processed_images_list)} 張相片：**")
                 st.image(st.session_state.processed_images_list, width=100)
 
         if st.button("✨ 讓 AI 自動辨識相片並填入空格", use_container_width=True):
             if not current_key:
                 st.error("❌ 尚未設定 GEMINI_API_KEY")
             elif not st.session_state.processed_images_list:
-                st.warning("⚠️ 請先上傳平板相片！")
+                st.warning("⚠️ 請先從平板相簿上傳至少一張商品相片！")
             else:
-                with st.spinner("🤖 AI 正在辨識平板相片中的商品..."):
+                with st.spinner("🤖 AI 正在深度辨識平板相片中的商品..."):
                     client = get_gemini_client()
                     if not client:
                         st.error("❌ Gemini Client 初始化失敗。")
@@ -219,14 +226,20 @@ if mode == "🚀 圖片辨識與行銷總控台":
 請分析這些商品相片，並以嚴格的 JSON 格式回傳以下欄位（不要包在 markdown code block 裡，直接回傳純 JSON）：
 {
   "name": "建議的商品名稱",
-  "category": "分類（服飾鞋包, 3C電子, 居家生活, 美妝保養, 食品飲料, 其他）",
-  "price": "建議售價數字",
+  "category": "分類（必須從這幾個裡面選一個：服飾鞋包, 3C電子, 居家生活, 美妝保養, 食品飲料, 其他）",
+  "price": "建議售價數字（例如 399）",
   "selling_points": "核心賣點與材質特徵描述"
 }
 """
                     try:
                         contents = [parse_prompt] + st.session_state.processed_images_list
-                        response = client.models.generate_content(model=GEMINI_MODEL, contents=contents)
+                        # 相容新舊版 SDK 呼叫方式
+                        if hasattr(client, "models"):
+                            response = client.models.generate_content(model=GEMINI_MODEL, contents=contents)
+                        else:
+                            model = client.GenerativeModel(GEMINI_MODEL)
+                            response = model.generate_content(contents)
+
                         raw_text = getattr(response, "text", "").strip()
                         if raw_text.startswith("```json"): raw_text = raw_text[7:]
                         if raw_text.endswith("```"): raw_text = raw_text[:-3]
@@ -236,7 +249,7 @@ if mode == "🚀 圖片辨識與行銷總控台":
                         st.session_state.auto_category = data.get("category", "服飾鞋包")
                         st.session_state.auto_price = str(data.get("price", ""))
                         st.session_state.auto_selling_points = data.get("selling_points", "")
-                        st.success("🎉 辨識完成！")
+                        st.success("🎉 AI 辨識完成！")
                         st.rerun()
                     except Exception as e:
                         st.error(f"❌ 自動辨識失敗: {e}")
@@ -277,7 +290,12 @@ if mode == "🚀 圖片辨識與行銷總控台":
 """
                     try:
                         contents = [prompt] + (st.session_state.processed_images_list if st.session_state.processed_images_list else [])
-                        response = client.models.generate_content(model=GEMINI_MODEL, contents=contents)
+                        if hasattr(client, "models"):
+                            response = client.models.generate_content(model=GEMINI_MODEL, contents=contents)
+                        else:
+                            model = client.GenerativeModel(GEMINI_MODEL)
+                            response = model.generate_content(contents)
+
                         result_str = getattr(response, "text", "")
                         st.session_state.last_result = result_str
                         save_history_record(product_name, category, price, key_selling_points, result_str)
@@ -287,7 +305,7 @@ if mode == "🚀 圖片辨識與行銷總控台":
 
     if st.session_state.last_result:
         st.markdown("---")
-        st.subheader("📊 AI 行銷生成成果輸出")
+        st.subheader("📊 AI 行銷生成成果輸出與匯出")
         st.markdown(f"<div class='result-card'>{st.session_state.last_result}</div>", unsafe_allow_html=True)
         st.download_button(
             label="📥 一鍵下載完整行銷文案 (.txt)",
@@ -309,7 +327,7 @@ elif mode == "🛍️ 買家極速導購前台":
         elif st.session_state.processed_image is not None:
             st.image(st.session_state.processed_image, caption=st.session_state.auto_name or "精選主打商品", use_container_width=True)
         else:
-            st.info("💡 目前後台尚未上傳商品相片。")
+            st.info("💡 目前後台尚未上傳平板相簿中的商品相片。")
             
     with col_shop2:
         st.markdown(f"### 🌟 {st.session_state.auto_name or '精選潮流商品'}")
