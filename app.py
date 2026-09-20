@@ -11,7 +11,7 @@ from PIL import Image
 # =====================================================================
 
 APP_NAME = "黑金鋼 AI 商業自動化總控台 PRO"
-APP_VERSION = "7.10"
+APP_VERSION = "8.0"
 
 DATA_DIR = Path("data")
 HISTORY_DIR = DATA_DIR / "history"
@@ -92,7 +92,7 @@ def load_all_histories():
     return records
 
 # =====================================================================
-# 4. API 設定與穩健型初始化 (使用傳統 google-generativeai)
+# 4. API 設定與 100% 穩健的初始化機制
 # =====================================================================
 
 try:
@@ -115,8 +115,7 @@ def get_api_key():
         
     return str(key).strip()
 
-@st.cache_resource
-def get_gemini_client():
+def get_gemini_model():
     if genai is None:
         return None
     api_key = get_api_key()
@@ -124,8 +123,8 @@ def get_gemini_client():
         return None
     try:
         genai.configure(api_key=api_key)
-        return genai
-    except Exception as e:
+        return genai.GenerativeModel(GEMINI_MODEL)
+    except Exception:
         return None
 
 # =====================================================================
@@ -211,9 +210,9 @@ if mode == "🚀 圖片辨識與行銷總控台":
                 st.warning("⚠️ 請先從平板相簿上傳至少一張商品相片！")
             else:
                 with st.spinner("🤖 AI 正在深度辨識平板相片中的商品..."):
-                    genai_module = get_gemini_client()
-                    if not genai_module:
-                        st.error("❌ Gemini 初始化失敗，請檢查 API Key 或套件安裝。")
+                    model = get_gemini_model()
+                    if not model:
+                        st.error("❌ Gemini 模型初始化失敗，請檢查 API Key。")
                         st.stop()
 
                     parse_prompt = """
@@ -227,7 +226,6 @@ if mode == "🚀 圖片辨識與行銷總控台":
 """
                     try:
                         contents = [parse_prompt] + st.session_state.processed_images_list
-                        model = genai_module.GenerativeModel(GEMINI_MODEL)
                         response = model.generate_content(contents)
 
                         raw_text = getattr(response, "text", "").strip()
@@ -267,9 +265,9 @@ if mode == "🚀 圖片辨識與行銷總控台":
                 st.warning("⚠️ 請先填入商品名稱！")
             else:
                 with st.spinner("🤖 正在生成各平台文案並自動歸檔..."):
-                    genai_module = get_gemini_client()
-                    if not genai_module:
-                        st.error("❌ Gemini 初始化失敗，請檢查 API Key 或套件安裝。")
+                    model = get_gemini_model()
+                    if not model:
+                        st.error("❌ Gemini 模型初始化失敗，請檢查 API Key。")
                         st.stop()
 
                     prompt = f"""
@@ -280,7 +278,6 @@ if mode == "🚀 圖片辨識與行銷總控台":
 """
                     try:
                         contents = [prompt] + (st.session_state.processed_images_list if st.session_state.processed_images_list else [])
-                        model = genai_module.GenerativeModel(GEMINI_MODEL)
                         response = model.generate_content(contents)
 
                         result_str = getattr(response, "text", "")
