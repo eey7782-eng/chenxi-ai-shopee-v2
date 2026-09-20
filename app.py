@@ -92,7 +92,7 @@ def load_all_histories():
     return records
 
 # =====================================================================
-# 4. API 設定與 100% 穩健的初始化機制
+# 4. API 設定與金鑰硬編碼初始化
 # =====================================================================
 
 try:
@@ -103,17 +103,8 @@ except ImportError:
 GEMINI_MODEL = "gemini-1.5-flash"
 
 def get_api_key():
-    key = ""
-    try:
-        if hasattr(st, "secrets") and "GEMINI_API_KEY" in st.secrets:
-            key = st.secrets["GEMINI_API_KEY"]
-    except Exception:
-        pass
-    
-    if not key:
-        key = os.getenv("GEMINI_API_KEY", "")
-        
-    return str(key).strip()
+    # 直接寫死您的 API 金鑰，免去額外設定 Secrets 的麻煩
+    return "AQ.Ab8RN6JllxZ97aktv4bCdM9FK8EDKYTPvrOXW0awvuGK-FxBtw"
 
 def get_gemini_model():
     if genai is None:
@@ -172,9 +163,9 @@ if mode == "🚀 圖片辨識與行銷總控台":
 
     current_key = get_api_key()
     if not current_key:
-        st.error("❌ 尚未設定 GEMINI_API_KEY！請至 Streamlit Secrets 檢查設定。")
+        st.error("❌ 尚未設定 API 金鑰！")
     else:
-        st.success("✅ GEMINI_API_KEY 已順利連線！")
+        st.success("✅ GEMINI_API_KEY 已內建連線！")
 
     col1, col2 = st.columns([1, 1], gap="large")
 
@@ -204,15 +195,13 @@ if mode == "🚀 圖片辨識與行銷總控台":
                 st.image(st.session_state.processed_images_list, width=100)
 
         if st.button("✨ 讓 AI 自動辨識相片並填入空格", use_container_width=True):
-            if not current_key:
-                st.error("❌ 尚未設定 GEMINI_API_KEY")
-            elif not st.session_state.processed_images_list:
+            if not st.session_state.processed_images_list:
                 st.warning("⚠️ 請先從平板相簿上傳至少一張商品相片！")
             else:
                 with st.spinner("🤖 AI 正在深度辨識平板相片中的商品..."):
                     model = get_gemini_model()
                     if not model:
-                        st.error("❌ Gemini 模型初始化失敗，請檢查 API Key。")
+                        st.error("❌ Gemini 模型初始化失敗。")
                         st.stop()
 
                     parse_prompt = """
@@ -259,15 +248,13 @@ if mode == "🚀 圖片辨識與行銷總控台":
         tone = st.selectbox("文案風格語氣", ["Z世代真實推薦 (微毒舌共鳴)", "高級質感電商", "強導購降價風"])
         
         if st.button("🚀 產出完整跨平台行銷文案套組", use_container_width=True):
-            if not current_key:
-                st.error("❌ 尚未設定 GEMINI_API_KEY")
-            elif not product_name:
+            if not product_name:
                 st.warning("⚠️ 請先填入商品名稱！")
             else:
                 with st.spinner("🤖 正在生成各平台文案並自動歸檔..."):
                     model = get_gemini_model()
                     if not model:
-                        st.error("❌ Gemini 模型初始化失敗，請檢查 API Key。")
+                        st.error("❌ Gemini 模型初始化失敗。")
                         st.stop()
 
                     prompt = f"""
