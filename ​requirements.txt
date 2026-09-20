@@ -1,3 +1,5 @@
-streamlit>=1.30.0
-google-genai>=0.1.0
-pillow>=10.3.0
+streamlit
+google-genai
+pillow
+requests
+PyJWT
