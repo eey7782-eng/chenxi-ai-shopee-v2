@@ -1,9 +1,6 @@
 import os
 import io
 import json
-import time
-import jwt
-import requests
 from datetime import datetime
 from pathlib import Path
 import streamlit as st
@@ -14,7 +11,7 @@ from PIL import Image
 # =====================================================================
 
 APP_NAME = "黑金剛 AI 商業自動化總控台 PRO"
-APP_VERSION = "7.7"
+APP_VERSION = "7.8"
 
 DATA_DIR = Path("data")
 HISTORY_DIR = DATA_DIR / "history"
@@ -66,10 +63,6 @@ if "processed_image" not in st.session_state:
     st.session_state.processed_image = None
 if "processed_images_list" not in st.session_state:
     st.session_state.processed_images_list = []
-if "kling_task_id" not in st.session_state:
-    st.session_state.kling_task_id = None
-if "kling_video_url" not in st.session_state:
-    st.session_state.kling_video_url = None
 
 # =====================================================================
 # 3. 歷史紀錄存取函式
@@ -109,19 +102,24 @@ except ImportError:
 
 GEMINI_MODEL = "gemini-2.5-flash"
 
-def get_secret_key(key_name):
+def get_api_key():
+    key = ""
     try:
-        if hasattr(st, "secrets") and key_name in st.secrets:
-            return str(st.secrets[key_name]).strip()
+        if hasattr(st, "secrets") and "GEMINI_API_KEY" in st.secrets:
+            key = st.secrets["GEMINI_API_KEY"]
     except Exception:
         pass
-    return str(os.getenv(key_name, "")).strip()
+    
+    if not key:
+        key = os.getenv("GEMINI_API_KEY", "")
+        
+    return str(key).strip()
 
 @st.cache_resource
 def get_gemini_client():
     if genai is None:
         return None
-    api_key = get_secret_key("GEMINI_API_KEY")
+    api_key = get_api_key()
     if not api_key:
         return None
     try:
@@ -130,63 +128,11 @@ def get_gemini_client():
         return None
 
 # =====================================================================
-# 5. 可靈 AI (Kling AI) API 輔助函式
-# =====================================================================
-
-def generate_kling_jwt(access_key: str, secret_key: str) -> str:
-    headers = {"alg": "HS256", "typ": "JWT"}
-    payload = {
-        "iss": access_key,
-        "exp": int(time.time()) + 1800,
-        "nbf": int(time.time()) - 5
-    }
-    return jwt.encode(payload, secret_key, headers=headers)
-
-def create_kling_video_task(prompt: str):
-    ak = get_secret_key("KLING_ACCESS_KEY")
-    sk = get_secret_key("KLING_SECRET_KEY")
-    if not ak or not sk:
-        return {"code": 400, "message": "尚未設定 KLING_ACCESS_KEY 或 KLING_SECRET_KEY"}
-    
-    token = generate_kling_jwt(ak, sk)
-    url = "https://api.klingai.com/v1/videos/text-to-video" # 可依實際官方網域調整
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {token}"
-    }
-    payload = {
-        "model_name": "kling-v1",
-        "prompt": prompt,
-        "duration": "5",
-        "mode": "std"
-    }
-    try:
-        res = requests.post(url, headers=headers, json=payload, timeout=30)
-        return res.json()
-    except Exception as e:
-        return {"code": 500, "message": str(e)}
-
-def query_kling_task(task_id: str):
-    ak = get_secret_key("KLING_ACCESS_KEY")
-    sk = get_secret_key("KLING_SECRET_KEY")
-    if not ak or not sk:
-        return None
-    
-    token = generate_kling_jwt(ak, sk)
-    url = f"https://api.klingai.com/v1/videos/text-to-video/{task_id}"
-    headers = {"Authorization": f"Bearer {token}"}
-    try:
-        res = requests.get(url, headers=headers, timeout=30)
-        return res.json()
-    except Exception:
-        return None
-
-# =====================================================================
-# 6. 側邊欄與功能模式
+# 5. 側邊欄與功能模式
 # =====================================================================
 
 st.sidebar.title("⚡ 控制台選單")
-mode = st.sidebar.radio("選擇功能模式", ["🚀 圖片辨識與行銷總控台", "🎬 AI 動態短影音生成", "🛍️ 買家極速導購前台"])
+mode = st.sidebar.radio("選擇功能模式", ["🚀 圖片辨識與行銷總控台", "🛍️ 買家極速導購前台"])
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("📜 歷史生成紀錄")
@@ -221,12 +167,12 @@ else:
 
 if mode == "🚀 圖片辨識與行銷總控台":
     st.markdown(f"<h1 class='gold-title'>{APP_NAME} v{APP_VERSION}</h1>", unsafe_allow_html=True)
-    st.caption("平板相簿選取 ＋ 智慧辨識填空 ＋ 跨平台行銷套組")
+    st.caption("平板相簿多選 ＋ 智慧辨識填空 ＋ 跨平台行銷套組")
     st.markdown("---")
 
-    current_key = get_secret_key("GEMINI_API_KEY")
+    current_key = get_api_key()
     if not current_key:
-        st.error("❌ 尚未設定 GEMINI_API_KEY！")
+        st.error("❌ 尚未設定 GEMINI_API_KEY！請至 Streamlit Secrets 檢查。")
     else:
         st.success("✅ GEMINI_API_KEY 已連線！")
 
@@ -235,7 +181,7 @@ if mode == "🚀 圖片辨識與行銷總控台":
     with col1:
         st.subheader("🖼️ 1. 從平板相簿選取商品相片")
         uploaded_files = st.file_uploader(
-            "選擇或拖曳相片檔案", 
+            "選擇或拖曳相片檔案 (支援多選)", 
             type=["jpg", "jpeg", "png", "webp", "heic"], 
             accept_multiple_files=True
         )
@@ -258,11 +204,17 @@ if mode == "🚀 圖片辨識與行銷總控台":
                 st.image(st.session_state.processed_images_list, width=100)
 
         if st.button("✨ 讓 AI 自動辨識相片並填入空格", use_container_width=True):
-            if not st.session_state.processed_images_list:
-                st.warning("⚠️ 請先上傳商品相片！")
+            if not current_key:
+                st.error("❌ 尚未設定 GEMINI_API_KEY")
+            elif not st.session_state.processed_images_list:
+                st.warning("⚠️ 請先上傳平板相片！")
             else:
                 with st.spinner("🤖 AI 正在辨識平板相片中的商品..."):
                     client = get_gemini_client()
+                    if not client:
+                        st.error("❌ Gemini Client 初始化失敗。")
+                        st.stop()
+
                     parse_prompt = """
 請分析這些商品相片，並以嚴格的 JSON 格式回傳以下欄位（不要包在 markdown code block 裡，直接回傳純 JSON）：
 {
@@ -306,11 +258,17 @@ if mode == "🚀 圖片辨識與行銷總控台":
         tone = st.selectbox("文案風格語氣", ["Z世代真實推薦 (微毒舌共鳴)", "高級質感電商", "強導購降價風"])
         
         if st.button("🚀 產出完整跨平台行銷文案套組", use_container_width=True):
-            if not product_name:
+            if not current_key:
+                st.error("❌ 尚未設定 GEMINI_API_KEY")
+            elif not product_name:
                 st.warning("⚠️ 請先填入商品名稱！")
             else:
                 with st.spinner("🤖 正在生成各平台文案並自動歸檔..."):
                     client = get_gemini_client()
+                    if not client:
+                        st.error("❌ Gemini Client 初始化失敗。")
+                        st.stop()
+
                     prompt = f"""
 請針對商品「{product_name}」（分類：{category}，售價：NT${price}，賣點：{key_selling_points}，風格：{tone}）生成：
 1. 🛒 蝦皮 SEO 賣場文案
@@ -338,43 +296,6 @@ if mode == "🚀 圖片辨識與行銷總控台":
             mime="text/plain",
             use_container_width=True
         )
-
-elif mode == "🎬 AI 動態短影音生成":
-    st.markdown("<h2 class='gold-title'>🎬 可靈 AI (Kling AI) 智慧短影音生成</h2>", unsafe_allow_html=True)
-    st.caption("將您的商品轉為吸睛的短影音動態廣告")
-    st.markdown("---")
-
-    k_ak = get_secret_key("KLING_ACCESS_KEY")
-    k_sk = get_secret_key("KLING_SECRET_KEY")
-    if not k_ak or not k_sk:
-        st.warning("⚠️ 尚未設定可靈 API 金鑰 (`KLING_ACCESS_KEY` 與 `KLING_SECRET_KEY`)，請至 Streamlit Secrets 填入。")
-    else:
-        st.success("✅ 可靈 API 金鑰已就緒！")
-
-    video_prompt = st.text_area(
-        "輸入短影音運鏡與畫面描述提示詞 (Prompt)",
-        value=f"Cinematic product commercial for {st.session_state.auto_name or 'trendy product'}, elegant lighting, smooth camera rotation, high-end commercial style, 4k resolution"
-    )
-
-    if st.button("🚀 提交可靈 AI 影片生成任務", use_container_width=True):
-        with st.spinner("⏳ 正在向可靈 AI 發送影片生成任務..."):
-            res = create_kling_video_task(video_prompt)
-            if res.get("code") == 0 or "data" in res:
-                task_data = res.get("data", {})
-                st.session_state.kling_task_id = task_data.get("task_id")
-                st.success(f"🎉 任務已成功提交！Task ID: {st.session_state.kling_task_id}")
-            else:
-                st.error(f"❌ 提交失敗: {res.get('message', res)}")
-
-    if st.session_state.kling_task_id:
-        st.markdown(f"**當前任務 ID**: `{st.session_state.kling_task_id}`")
-        if st.button("🔄 檢查影片生成進度與結果"):
-            with st.spinner("🔍 正在查詢伺服器端渲染狀態..."):
-                status_res = query_kling_task(st.session_state.kling_task_id)
-                if status_res:
-                    st.json(status_res)
-                else:
-                    st.error("❌ 查詢狀態失敗或無回應。")
 
 elif mode == "🛍️ 買家極速導購前台":
     st.markdown("<h2 style='text-align: center;'>🔥 精選好物導購中心</h2>", unsafe_allow_html=True)
