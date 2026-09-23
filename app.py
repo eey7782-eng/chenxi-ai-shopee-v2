@@ -10,7 +10,7 @@ from PIL import Image
 # =====================================================================
 
 APP_NAME = "黑金鋼 AI 商業自動化總控台 PRO"
-APP_VERSION = "9.0"
+APP_VERSION = "9.2"
 
 DATA_DIR = Path("data")
 HISTORY_DIR = DATA_DIR / "history"
@@ -91,7 +91,7 @@ def load_all_histories():
     return records
 
 # =====================================================================
-# 4. Groq AI 核心文案與即夢指令生成函式
+# 4. Groq & 豆包風格內容生成函式
 # =====================================================================
 
 GROQ_API_KEY = "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"
@@ -100,10 +100,12 @@ def call_ai_generation(product_name="質感商品", price="399", points="優質�
     try:
         from groq import Groq
         client = Groq(api_key=GROQ_API_KEY)
-        prompt = f"""請針對商品「{product_name}」（售價：NT${price}，核心賣點：{points}），產出以下結構化內容：
+        prompt = f"""請針對商品「{product_name}」（售價：NT${price}，核心賣點：{points}），發揮字節跳動豆包大模型的短影音創作優勢，產出以下結構化內容：
 1. 【🛒 蝦皮與社群爆款行銷文案】（包含吸引人的標題與搶購引導）
 2. 【🏷️ 熱門 HashTag】（5個高流量相關標籤）
-3. 【🎨 即夢 AI 畫面生成指令碼 (Prompt)】（一段高品質、描述商用級光影與質感場景的英文 Prompt）"""
+3. 【🎨 即夢 AI 畫面生成指令碼 (Prompt)】（一段高品質、描述商用級光影與質感場景的英文 Prompt）
+4. 【🎵 小云雀 AI 音訊/配樂指令碼】（適合短影音背景音樂、輕快商用節奏或語音合成旁白的風格與提示詞）
+5. 【🎬 TikTok 短劇/爽文劇情文案（豆包風格）】（設計一段 30 秒能結合該商品、具備「黃金三秒吸睛開局 + 強烈衝突 + 驚喜反轉/種草成交」的短劇爽文劇本與口播對白）"""
         
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -123,7 +125,17 @@ def call_ai_generation(product_name="質感商品", price="399", points="優質�
 #goodies #爆款推薦 #時尚穿搭 #好物分享 #日常必备
 
 【🎨 即夢 AI 畫面生成指令碼 (Prompt)】
-A commercial product photography of {product_name}, elegant studio lighting, soft pastel background, highly detailed, 4k resolution, cinematic composition, trending on artstation."""
+A commercial product photography of {product_name}, elegant studio lighting, soft pastel background, highly detailed, 4k resolution, cinematic composition.
+
+【🎵 小云雀 AI 音訊/配樂指令碼】
+Style: Upbeat commercial pop, trendy, bright, cheerful rhythm.
+Voiceover Tone: Friendly, enthusiastic e-commerce host voice.
+
+【🎬 TikTok 短劇/爽文劇情文案（豆包風格）】
+[0-3秒 黃金鉤子]：「等等！你身上這件看起來像上萬塊的衣服，竟然不到四百塊？！」
+[3-15秒 劇情衝突]：女主角原本在派對上被勢利眼閨蜜嘲笑穿地攤貨，甚至故意把飲料潑在衣服上想看好戲...
+[15-25秒 驚喜反轉]：沒想到女主角淡定脫下外套，露出內裡精緻的 {product_name}，不僅防水抗污、版型還高級感爆棚，全場瞬間安靜驚豔！
+[25-30秒 導購成交]：閨蜜當場跪求連結！「哪裡買的？我也要！」點擊下方傳送門，把高級感直接帶回家！"""
 
 # =====================================================================
 # 5. 側邊欄與功能模式
@@ -165,7 +177,7 @@ else:
 
 if mode == "🚀 一鍵全自動生成總控台":
     st.markdown(f"<h1 class='gold-title'>{APP_NAME} v{APP_VERSION}</h1>", unsafe_allow_html=True)
-    st.caption("平板相簿多選 ＋ 一鍵產出名稱、文案、HashTag 與即夢 AI 指令碼")
+    st.caption("平板相簿多選 ＋ 豆包風格 TikTok 短劇爽文、即夢指令、小云雀音訊與行銷文案一鍵產出")
     st.markdown("---")
 
     col1, col2 = st.columns([1, 1], gap="large")
@@ -221,11 +233,11 @@ if mode == "🚀 一鍵全自動生成總控台":
         
         st.markdown("<br>", unsafe_allow_html=True)
         
-        if st.button("⚡ 一鍵自動生成：文案、# 與即夢指令碼", use_container_width=True, type="primary"):
+        if st.button("⚡ 一鍵自動生成：文案、#、即夢、小云雀與 TikTok 短劇", use_container_width=True, type="primary"):
             if not product_name:
                 st.warning("⚠️ 請先填入或分析商品名稱！")
             else:
-                with st.spinner("🤖 正在呼叫 AI 產出文案、HashTag 與即夢指令碼..."):
+                with st.spinner("🤖 正在呼叫 AI 產出全套行銷與豆包風短劇腳本..."):
                     result_str = call_ai_generation(product_name, price, key_selling_points)
                     st.session_state.last_result = result_str
                     save_history_record(product_name, category, price, key_selling_points, result_str)
