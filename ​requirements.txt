@@ -1,4 +1,5 @@
 streamlit
-requests
-pillow
+Pillow
+pillow-heif
+pillow-avif-plugin
 groq
