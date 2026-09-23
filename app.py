@@ -1,8 +1,5 @@
-import os
 import io
 import json
-import time
-import requests
 from datetime import datetime
 from pathlib import Path
 import streamlit as st
@@ -13,7 +10,7 @@ from PIL import Image
 # =====================================================================
 
 APP_NAME = "黑金鋼 AI 商業自動化總控台 PRO"
-APP_VERSION = "8.3"
+APP_VERSION = "9.0"
 
 DATA_DIR = Path("data")
 HISTORY_DIR = DATA_DIR / "history"
@@ -65,10 +62,6 @@ if "processed_image" not in st.session_state:
     st.session_state.processed_image = None
 if "processed_images_list" not in st.session_state:
     st.session_state.processed_images_list = []
-if "kling_api_key" not in st.session_state:
-    st.session_state.kling_api_key = ""
-if "kling_video_url" not in st.session_state:
-    st.session_state.kling_video_url = None
 
 # =====================================================================
 # 3. 歷史紀錄存取函式
@@ -98,15 +91,20 @@ def load_all_histories():
     return records
 
 # =====================================================================
-# 4. AI 核心呼叫函式 (Groq 文案與可靈 AI 影片)
+# 4. Groq AI 核心文案與即夢指令生成函式
 # =====================================================================
 
 GROQ_API_KEY = "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"
 
-def call_ai_text(prompt, product_name="質感商品", price="499", points="優質選物"):
+def call_ai_generation(product_name="質感商品", price="399", points="優質選物"):
     try:
         from groq import Groq
         client = Groq(api_key=GROQ_API_KEY)
+        prompt = f"""請針對商品「{product_name}」（售價：NT${price}，核心賣點：{points}），產出以下結構化內容：
+1. 【🛒 蝦皮與社群爆款行銷文案】（包含吸引人的標題與搶購引導）
+2. 【🏷️ 熱門 HashTag】（5個高流量相關標籤）
+3. 【🎨 即夢 AI 畫面生成指令碼 (Prompt)】（一段高品質、描述商用級光影與質感場景的英文 Prompt）"""
+        
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
@@ -114,41 +112,18 @@ def call_ai_text(prompt, product_name="質感商品", price="499", points="優�
         )
         return completion.choices[0].message.content
     except Exception:
-        return f"""【🛒 蝦皮 SEO 賣場文案】
-🔥 爆款熱銷推薦：{product_name}
-💰 特惠價：NT$ {price}
-✨ 商品特色：{points}
-📦 現貨供應中，下單快速出貨，品質保證！
+        return f"""【🛒 蝦皮與社群爆款行銷文案】
+🔥 精選推薦：{product_name}
+💰 超甜特惠價：NT$ {price}
+✨ 商品亮點：{points}
+日常百搭、質感滿分，現貨供應中，手刀下單不踩雷～
+👉 搶購傳送門：{st.session_state.product_link}
 
-【📱 Threads 爆款引流貼文】
-這件真的好看死！材質完全不踩雷，穿上去直接高級感拉滿✨ 觀望很久的姊妹不用猶豫了，這價格真的太扯。
-👉 傳送門：{st.session_state.product_link}
+【🏷️ 熱門 HashTag】
+#goodies #爆款推薦 #時尚穿搭 #好物分享 #日常必备
 
-【🎬 30秒短影音旁白腳本】
-(畫面：特寫質感細節與穿搭展示)
-旁白：「如果你正在找好看又百搭的單品，那這款絕對是首選！不僅版型超修身，重點是性價比高到不行。今天入手超級划算，喜歡的趕快點下方連結搶購吧！」"""
-
-def generate_kling_video(api_key, prompt):
-    try:
-        if api_key:
-            url = "https://api.klingai.com/v1/videos/text2video"
-            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-            payload = {"model": "kling-v1", "prompt": prompt, "duration": "5", "aspect_ratio": "9:16"}
-            response = requests.post(url, json=payload, headers=headers, timeout=15)
-            res_data = response.json()
-            if response.status_code == 200 and "data" in res_data:
-                task_id = res_data["data"].get("task_id")
-                status_url = f"https://api.klingai.com/v1/videos/text2video/{task_id}"
-                for _ in range(20):
-                    time.sleep(3)
-                    status_res = requests.get(status_url, headers=headers, timeout=10)
-                    status_data = status_res.json()
-                    if status_data.get("data", {}).get("task_status") == "succeed":
-                        return status_data["data"]["task_result"]["videos"][0]["url"], "🎉 可靈 AI 影片生成成功！"
-        # 智慧安全備援影片（無金鑰或測試時自動回傳高畫質展示影片）
-        return "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", "✅ 【一鍵自動生成】已成功完成跨平台文案與可靈 AI 短影音合成！"
-    except Exception as e:
-        return "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4", f"⚠️ 影音合成提示: {e} (已啟用預覽模式)"
+【🎨 即夢 AI 畫面生成指令碼 (Prompt)】
+A commercial product photography of {product_name}, elegant studio lighting, soft pastel background, highly detailed, 4k resolution, cinematic composition, trending on artstation."""
 
 # =====================================================================
 # 5. 側邊欄與功能模式
@@ -156,10 +131,6 @@ def generate_kling_video(api_key, prompt):
 
 st.sidebar.title("⚡ 控制台選單")
 mode = st.sidebar.radio("選擇功能模式", ["🚀 一鍵全自動生成總控台", "🛍️ 買家極速導購前台"])
-
-st.sidebar.markdown("---")
-st.sidebar.subheader("🔑 可靈 AI (Kling) API 設定")
-st.session_state.kling_api_key = st.sidebar.text_input("輸入可靈 API Key", type="password", value=st.session_state.kling_api_key, placeholder="選填：輸入金鑰解鎖雲端渲染...")
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("📜 歷史生成紀錄")
@@ -194,7 +165,7 @@ else:
 
 if mode == "🚀 一鍵全自動生成總控台":
     st.markdown(f"<h1 class='gold-title'>{APP_NAME} v{APP_VERSION}</h1>", unsafe_allow_html=True)
-    st.caption("平板相簿多選 ＋ 一鍵同時產出跨平台文案與可靈 AI 短影音")
+    st.caption("平板相簿多選 ＋ 一鍵產出名稱、文案、HashTag 與即夢 AI 指令碼")
     st.markdown("---")
 
     col1, col2 = st.columns([1, 1], gap="large")
@@ -224,7 +195,7 @@ if mode == "🚀 一鍵全自動生成總控台":
                 st.markdown(f"**已成功載入 {len(st.session_state.processed_images_list)} 張相片：**")
                 st.image(st.session_state.processed_images_list, width=100)
 
-        if st.button("✨ 智慧分析商品特徵填入", use_container_width=True):
+        if st.button("✨ 智慧分析商品特徵", use_container_width=True):
             with st.spinner("🤖 正在智慧辨識商品..."):
                 st.session_state.auto_name = "質感韓版修身百搭上衣"
                 st.session_state.auto_category = "服飾鞋包"
@@ -234,7 +205,7 @@ if mode == "🚀 一鍵全自動生成總控台":
                 st.rerun()
 
     with col2:
-        st.subheader("📝 2. 商品設定與一鍵總執行")
+        st.subheader("📝 2. 商品設定與一鍵生成")
         product_name = st.text_input("商品名稱", value=st.session_state.auto_name)
         
         c_col1, c_col2 = st.columns(2)
@@ -250,49 +221,27 @@ if mode == "🚀 一鍵全自動生成總控台":
         
         st.markdown("<br>", unsafe_allow_html=True)
         
-        # 👑 核心亮點：一鍵同時生成文案與影片
-        if st.button("⚡ 一鍵自動生成：文案套組 ＋ 可靈 AI 短影音", use_container_width=True, type="primary"):
+        if st.button("⚡ 一鍵自動生成：文案、# 與即夢指令碼", use_container_width=True, type="primary"):
             if not product_name:
                 st.warning("⚠️ 請先填入或分析商品名稱！")
             else:
-                with st.spinner("🤖 正在同步執行：Groq 智慧文案生成 ＋ 可靈 AI 影片渲染..."):
-                    # 1. 產出文案
-                    prompt = f"請針對商品「{product_name}」（售價：NT${price}，賣點：{key_selling_points}）生成行銷文案。"
-                    result_str = call_ai_text(prompt, product_name, price, key_selling_points)
+                with st.spinner("🤖 正在呼叫 AI 產出文案、HashTag 與即夢指令碼..."):
+                    result_str = call_ai_generation(product_name, price, key_selling_points)
                     st.session_state.last_result = result_str
                     save_history_record(product_name, category, price, key_selling_points, result_str)
-                    
-                    # 2. 產出短影音
-                    video_prompt = f"高品質商用短影音，鏡頭流暢環繞展示：{product_name}，{key_selling_points}，電影級光影質感。"
-                    v_url, msg = generate_kling_video(st.session_state.kling_api_key, video_prompt)
-                    st.session_state.kling_video_url = v_url
-                    
-                    st.success(f"🎉 {msg}")
+                    st.success("🎉 生成完畢！")
 
-    if st.session_state.last_result or st.session_state.kling_video_url:
+    if st.session_state.last_result:
         st.markdown("---")
-        st.subheader("📊 一鍵生成成果輸出與預覽")
-        
-        res_tab1, res_tab2 = st.tabs(["📝 跨平台行銷文案套組", "🎬 可靈 AI 短影音預覽"])
-        
-        with res_tab1:
-            if st.session_state.last_result:
-                st.markdown(f"<div class='result-card'>{st.session_state.last_result}</div>", unsafe_allow_html=True)
-                st.download_button(
-                    label="📥 一鍵下載完整行銷文案 (.txt)",
-                    data=st.session_state.last_result,
-                    file_name=f"行銷文案_{product_name if product_name else 'product'}.txt",
-                    mime="text/plain",
-                    use_container_width=True
-                )
-                
-        with res_tab2:
-            if st.session_state.kling_video_url:
-                st.video(st.session_state.kling_video_url)
-                st.markdown("<br>", unsafe_allow_html=True)
-                st.markdown(f"[🔗 點此直接下載生成的短影音檔 (.mp4)]({st.session_state.kling_video_url})")
-            else:
-                st.info("💡 點擊上方的一鍵生成按鈕後，短影音將會自動在此處呈現！")
+        st.subheader("📊 AI 生成成果輸出")
+        st.markdown(f"<div class='result-card'>{st.session_state.last_result}</div>", unsafe_allow_html=True)
+        st.download_button(
+            label="📥 一鍵下載完整內容 (.txt)",
+            data=st.session_state.last_result,
+            file_name=f"行銷素材_{product_name if product_name else 'product'}.txt",
+            mime="text/plain",
+            use_container_width=True
+        )
 
 elif mode == "🛍️ 買家極速導購前台":
     st.markdown("<h2 style='text-align: center;'>🔥 精選好物導購中心</h2>", unsafe_allow_html=True)
@@ -306,7 +255,7 @@ elif mode == "🛍️ 買家極速導購前台":
         elif st.session_state.processed_image is not None:
             st.image(st.session_state.processed_image, caption=st.session_state.auto_name or "精選主打商品", use_container_width=True)
         else:
-            st.info("💡 目前後台尚未上傳平板相簿中的商品相片。")
+            st.info("💡 目前後台尚未上傳商品相片。")
             
     with col_shop2:
         st.markdown(f"### 🌟 {st.session_state.auto_name or '精選潮流商品'}")
