@@ -10,7 +10,7 @@ from PIL import Image
 # =====================================================================
 
 APP_NAME = "黑金鋼 AI 商業自動化總控台 PRO"
-APP_VERSION = "9.2"
+APP_VERSION = "9.3"
 
 DATA_DIR = Path("data")
 HISTORY_DIR = DATA_DIR / "history"
@@ -132,10 +132,10 @@ Style: Upbeat commercial pop, trendy, bright, cheerful rhythm.
 Voiceover Tone: Friendly, enthusiastic e-commerce host voice.
 
 【🎬 TikTok 短劇/爽文劇情文案（豆包風格）】
-[0-3秒 黃金鉤子]：「等等！你身上這件看起來像上萬塊的衣服，竟然不到四百塊？！」
+[0-3秒 黃金鉤子]：「等等!你身上這件看起來像上萬塊的衣服，竟然不到四百塊?!」
 [3-15秒 劇情衝突]：女主角原本在派對上被勢利眼閨蜜嘲笑穿地攤貨，甚至故意把飲料潑在衣服上想看好戲...
 [15-25秒 驚喜反轉]：沒想到女主角淡定脫下外套，露出內裡精緻的 {product_name}，不僅防水抗污、版型還高級感爆棚，全場瞬間安靜驚豔！
-[25-30秒 導購成交]：閨蜜當場跪求連結！「哪裡買的？我也要！」點擊下方傳送門，把高級感直接帶回家！"""
+[25-30秒 導購成交]：閨蜜當場跪求連結！「哪裡買的?我也要!」點擊下方傳送門，把高級感直接帶回家！"""
 
 # =====================================================================
 # 5. 側邊欄與功能模式
@@ -177,7 +177,7 @@ else:
 
 if mode == "🚀 一鍵全自動生成總控台":
     st.markdown(f"<h1 class='gold-title'>{APP_NAME} v{APP_VERSION}</h1>", unsafe_allow_html=True)
-    st.caption("平板相簿多選 ＋ 豆包風格 TikTok 短劇爽文、即夢指令、小云雀音訊與行銷文案一鍵產出")
+    st.caption("平板相簿多選（支援 AVIF/HEIC/JPG）＋ 豆包短劇、即夢指令、小云雀音訊與行銷文案一鍵產出")
     st.markdown("---")
 
     col1, col2 = st.columns([1, 1], gap="large")
@@ -185,8 +185,8 @@ if mode == "🚀 一鍵全自動生成總控台":
     with col1:
         st.subheader("🖼️ 1. 從平板相簿選取商品相片")
         uploaded_files = st.file_uploader(
-            "選擇或拖曳相片檔案 (支援平板多張相片選取)", 
-            type=["jpg", "jpeg", "png", "webp", "heic"], 
+            "選擇或拖曳相片檔案 (支援 AVIF, JPG, PNG, WEBP, HEIC)", 
+            type=["jpg", "jpeg", "png", "webp", "heic", "avif"], 
             accept_multiple_files=True
         )
         
@@ -196,11 +196,11 @@ if mode == "🚀 一鍵全自動生成總控台":
                 try:
                     img_bytes = uploaded_file.getvalue()
                     image = Image.open(io.BytesIO(img_bytes))
-                    if image.mode in ("RGBA", "P"):
+                    if image.mode in ("RGBA", "P", "LA"):
                         image = image.convert("RGB")
                     st.session_state.processed_images_list.append(image)
                 except Exception as e:
-                    st.warning(f"⚠️ 解析相片提示: {e}")
+                    st.warning(f"⚠️ 解析相片提示 ({uploaded_file.name}): {e}")
             
             if st.session_state.processed_images_list:
                 st.session_state.processed_image = st.session_state.processed_images_list[0]
