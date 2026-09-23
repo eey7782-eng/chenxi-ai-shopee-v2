@@ -1,5 +1,5 @@
-streamlit
-Pillow
-pillow-heif
-pillow-avif-plugin
-groq
+streamlit>=1.45,<2
+Pillow>=10.0
+pillow-avif-plugin>=1.5.0
+pillow-heif>=0.18.0
+groq>=0.30.0
