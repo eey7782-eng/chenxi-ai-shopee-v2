@@ -26,7 +26,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# 完美還原設計圖的自定義 HTML/CSS 網頁架構
+# 完美還原設計圖的自定義 HTML/CSS 網頁架構（已優化響應式與高度自適應）
 html_code = """
 <!DOCTYPE html>
 <html lang="zh-TW">
@@ -44,6 +44,7 @@ html_code = """
             background-color: #f4f6f0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: #2c3e2d;
+            overflow-x: hidden;
         }
 
         /* 頂部導覽列 */
@@ -55,6 +56,8 @@ html_code = """
             padding: 16px 40px;
             color: white;
             box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            flex-wrap: wrap;
+            gap: 15px;
         }
         .nav-logo {
             display: flex;
@@ -69,13 +72,14 @@ html_code = """
         }
         .nav-links {
             display: flex;
-            gap: 30px;
+            gap: 25px;
             align-items: center;
+            flex-wrap: wrap;
         }
         .nav-links a {
             color: #d1dcd4;
             text-decoration: none;
-            font-size: 16px;
+            font-size: 15px;
             transition: color 0.3s;
         }
         .nav-links a:hover, .nav-links a.active {
@@ -86,7 +90,7 @@ html_code = """
         .btn-booking {
             background-color: #2e5a42 !important;
             color: white !important;
-            padding: 10px 22px;
+            padding: 8px 18px;
             border-radius: 6px;
             font-weight: bold;
             border: 1px solid #4a7c59;
@@ -96,8 +100,8 @@ html_code = """
         .hero {
             position: relative;
             width: 100%;
-            height: 520px;
-            background-image: url('https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1920&q=80');
+            height: 480px;
+            background-image: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1920&q=80');
             background-size: cover;
             background-position: center;
             display: flex;
@@ -106,23 +110,23 @@ html_code = """
             padding: 40px;
         }
         .hero-sign {
-            background: rgba(40, 30, 20, 0.88);
+            background: rgba(40, 30, 20, 0.9);
             color: #fdfbf7;
             padding: 22px 32px;
             border-radius: 8px;
             border: 2px dashed #d4b28c;
             text-align: center;
-            transform: rotate(2deg);
+            transform: rotate(1.5deg);
             box-shadow: 0 10px 25px rgba(0,0,0,0.4);
             max-width: 400px;
         }
         .hero-sign h2 {
-            font-size: 26px;
+            font-size: 24px;
             margin-bottom: 8px;
             letter-spacing: 1px;
         }
         .hero-sign p {
-            font-size: 16px;
+            font-size: 15px;
             color: #e2d9cd;
         }
 
@@ -142,15 +146,16 @@ html_code = """
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-            transition: transform 0.3s;
+            transition: transform 0.3s, box-shadow 0.3s;
             position: relative;
         }
         .card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
         .card-img-wrap {
             position: relative;
-            height: 220px;
+            height: 210px;
         }
         .card-img-wrap img {
             width: 100%;
@@ -163,9 +168,9 @@ html_code = """
             left: 15px;
             background-color: #193124;
             color: white;
-            padding: 6px 16px;
+            padding: 6px 14px;
             border-radius: 20px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             display: flex;
             align-items: center;
@@ -176,7 +181,7 @@ html_code = """
             padding: 20px;
         }
         .card-content p {
-            font-size: 15px;
+            font-size: 14px;
             color: #4a5d4e;
             line-height: 1.6;
         }
@@ -195,7 +200,7 @@ html_code = """
             box-shadow: 0 4px 15px rgba(0,0,0,0.04);
         }
         .promo-card h3 {
-            font-size: 26px;
+            font-size: 24px;
             color: #193124;
             line-height: 1.6;
             font-family: serif;
@@ -210,32 +215,58 @@ html_code = """
             justify-content: space-between;
             align-items: center;
             margin-top: 60px;
+            flex-wrap: wrap;
+            gap: 20px;
         }
         .footer-icons {
             display: flex;
-            gap: 35px;
+            gap: 25px;
+            flex-wrap: wrap;
         }
         .footer-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            font-size: 14px;
-            gap: 6px;
+            font-size: 13px;
+            gap: 4px;
             color: #b8cbb8;
         }
         .footer-banner {
             background-color: #2e5a42;
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 8px;
             border: 1px dashed #d4b28c;
             color: #fff;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 15px;
         }
 
+        /* 響應式調整 */
         @media (max-width: 1024px) {
             .grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            .hero {
+                height: 380px;
+                padding: 20px;
+                justify-content: center;
+                align-items: center;
+            }
+            .hero-sign {
+                transform: rotate(0deg);
+            }
+            .navbar {
+                padding: 12px 20px;
+                justify-content: center;
+            }
+            .footer {
+                justify-content: center;
+                text-align: center;
             }
         }
     </style>
@@ -373,5 +404,5 @@ html_code = """
 </html>
 """
 
-# 在 Streamlit 中完美渲染該 HTML/CSS 版面
-components.html(html_code, height=1350, scrolling=True)
+# 在 Streamlit 中完美渲染該 HTML/CSS 版面（稍微增加高度確保容納所有內容）
+components.html(html_code, height=1420, scrolling=False)
