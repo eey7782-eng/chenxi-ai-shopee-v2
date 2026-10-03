@@ -1,14 +1,14 @@
 import streamlit as st
 import streamlit.components.v1 as components
 
-# 設定頁面配置
+# 設定頁面配置，採用寬螢幕模式以呈現精美網頁質感
 st.set_page_config(
     page_title="山間悠活露營區 - 露營、咖啡、美食、歡樂、放鬆",
     page_icon="⛺",
     layout="wide"
 )
 
-# 移除 Streamlit 預設的上方空白與 UI 元素
+# 隱藏 Streamlit 預設的上方 Header 與 Footer，打造純粹的全螢幕質感
 st.markdown("""
     <style>
         .block-container {
@@ -20,10 +20,13 @@ st.markdown("""
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
+        .stApp {
+            background-color: #f4f6f0;
+        }
     </style>
 """, unsafe_allow_html=True)
 
-# 完整還原設計圖的 HTML/CSS 程式碼
+# 完美還原設計圖的自定義 HTML/CSS 網頁架構
 html_code = """
 <!DOCTYPE html>
 <html lang="zh-TW">
@@ -49,21 +52,20 @@ html_code = """
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 40px;
+            padding: 16px 40px;
             color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
         }
         .nav-logo {
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        .nav-logo img {
-            height: 45px;
-        }
         .nav-logo span {
             font-size: 24px;
             font-weight: bold;
             letter-spacing: 1px;
+            color: #ffffff;
         }
         .nav-links {
             display: flex;
@@ -82,7 +84,7 @@ html_code = """
             padding-bottom: 3px;
         }
         .btn-booking {
-            background-color: #2e5a42;
+            background-color: #2e5a42 !important;
             color: white !important;
             padding: 10px 22px;
             border-radius: 6px;
@@ -104,15 +106,15 @@ html_code = """
             padding: 40px;
         }
         .hero-sign {
-            background: rgba(40, 30, 20, 0.85);
+            background: rgba(40, 30, 20, 0.88);
             color: #fdfbf7;
-            padding: 20px 30px;
+            padding: 22px 32px;
             border-radius: 8px;
             border: 2px dashed #d4b28c;
             text-align: center;
             transform: rotate(2deg);
             box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-            max-width: 380px;
+            max-width: 400px;
         }
         .hero-sign h2 {
             font-size: 26px;
@@ -190,11 +192,12 @@ html_code = """
             padding: 30px;
             text-align: center;
             border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
         }
         .promo-card h3 {
             font-size: 26px;
             color: #193124;
-            line-height: 1.5;
+            line-height: 1.6;
             font-family: serif;
         }
 
@@ -210,7 +213,7 @@ html_code = """
         }
         .footer-icons {
             display: flex;
-            gap: 40px;
+            gap: 35px;
         }
         .footer-item {
             display: flex;
@@ -263,10 +266,10 @@ html_code = """
         </div>
     </div>
 
-    <!-- 六大核心區塊與網格 -->
+    <!-- 六大核心與網格卡片區 -->
     <div class="container">
         <div class="grid">
-            <!-- 露營區 -->
+            <!-- 1. 露營區 -->
             <div class="card">
                 <div class="card-img-wrap">
                     <img src="https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=600&q=80" alt="露營區">
@@ -277,7 +280,7 @@ html_code = """
                 </div>
             </div>
 
-            <!-- 咖啡廳 -->
+            <!-- 2. 咖啡廳 -->
             <div class="card">
                 <div class="card-img-wrap">
                     <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80" alt="咖啡廳">
@@ -288,7 +291,7 @@ html_code = """
                 </div>
             </div>
 
-            <!-- 烤肉區 -->
+            <!-- 3. 烤肉區 -->
             <div class="card">
                 <div class="card-img-wrap">
                     <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80" alt="烤肉區">
@@ -299,7 +302,7 @@ html_code = """
                 </div>
             </div>
 
-            <!-- 卡拉OK -->
+            <!-- 4. 卡拉OK -->
             <div class="card">
                 <div class="card-img-wrap">
                     <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80" alt="卡拉OK">
@@ -310,7 +313,7 @@ html_code = """
                 </div>
             </div>
 
-            <!-- 泡茶區 -->
+            <!-- 5. 泡茶區 -->
             <div class="card">
                 <div class="card-img-wrap">
                     <img src="https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80" alt="泡茶區">
@@ -321,7 +324,7 @@ html_code = """
                 </div>
             </div>
 
-            <!-- 放山雞 -->
+            <!-- 6. 放山雞 -->
             <div class="card">
                 <div class="card-img-wrap">
                     <img src="https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=600&q=80" alt="放山雞">
@@ -332,7 +335,7 @@ html_code = """
                 </div>
             </div>
 
-            <!-- 果園區 -->
+            <!-- 7. 果園區 -->
             <div class="card">
                 <div class="card-img-wrap">
                     <img src="https://images.unsplash.com/photo-1610397646682-f4a471fcffde?auto=format&fit=crop&w=600&q=80" alt="果園區">
@@ -343,14 +346,14 @@ html_code = """
                 </div>
             </div>
 
-            <!-- 右下角標語卡片 -->
+            <!-- 8. 右下角手寫質感標語卡片 -->
             <div class="promo-card">
                 <h3>🌿 遠離城市喧囂<br>來這裡，<br>遇見更好的自己 ♡</h3>
             </div>
         </div>
     </div>
 
-    <!-- 底部 Footer -->
+    <!-- 底部 Footer 資訊列 -->
     <div class="footer">
         <div class="footer-icons">
             <div class="footer-item">⛺ <span>露營</span></div>
@@ -370,5 +373,5 @@ html_code = """
 </html>
 """
 
-# 在 Streamlit 中渲染這個精美的 HTML 頁面
+# 在 Streamlit 中完美渲染該 HTML/CSS 版面
 components.html(html_code, height=1350, scrolling=True)
