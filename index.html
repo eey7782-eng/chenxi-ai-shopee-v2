@@ -1,85 +1,165 @@
-<!-- 商品分類展示區塊 -->
-<section class="product-categories">
-  <h2>農場特色與精選商品</h2>
-
-  <!-- 第一類：新鮮水蜜桃 -->
-  <div class="category-group">
-    <h3>🍑 新鮮嚴選水蜜桃</h3>
-    <p>高山現採、果香濃郁、飽滿多汁的頂級水蜜桃，禮盒裝送禮自用兩相宜。</p>
-    <div class="image-grid">
-      <img src="./1000001233.jpg" alt="新鮮水蜜桃秤重">
-      <img src="./1000001234.jpg" alt="禮盒裝水蜜桃">
-    </div>
-  </div>
-
-  <!-- 第二類：手作鮮採楊梅 -->
-  <div class="category-group">
-    <h3>🍓 手作鮮採楊梅</h3>
-    <p>產地直送、顆顆飽滿的新鮮楊梅，果園手工採收，酸甜好滋味。</p>
-    <div class="image-grid">
-      <img src="./1000001231.jpg" alt="果園採收實景">
-      <img src="./1000001235.jpg" alt="分裝新鮮楊梅">
-    </div>
-  </div>
-
-  <!-- 第三類：傳統手工漬物與特產 -->
-  <div class="category-group">
-    <h3>🍈 傳統手工漬物與特產</h3>
-    <p>遵循古法釀造的特色罈裝漬物，以及新鮮剖開的在地特色果物。</p>
-    <div class="image-grid">
-      <img src="./1000001230.jpg" alt="特色果物剖面">
-      <img src="./1000001232.jpg" alt="傳統罈裝漬物">
-    </div>
-  </div>
-
-  <!-- 第四類：招牌風味料理 -->
-  <div class="category-group">
-    <h3>🍗 招牌風味料理</h3>
-    <p>外皮酥脆、肉質鮮嫩多汁的招牌桶仔雞，絕佳美味上桌。</p>
-    <div class="image-grid">
-      <img src="./1000001229.jpg" alt="招牌桶仔雞">
-    </div>
-  </div>
-</section>
-
-<style>
-  .product-categories {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    font-family: sans-serif;
-  }
-  .category-group {
-    margin-bottom: 40px;
-    background: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-  }
-  .category-group h3 {
-    color: #333;
-    margin-bottom: 5px;
-  }
-  .category-group p {
-    color: #666;
-    margin-bottom: 15px;
-  }
-  .image-grid {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-  }
-  .image-grid img {
-    width: calc(50% - 15px);
-    max-width: 300px;
-    height: auto;
-    border-radius: 6px;
-    object-fit: cover;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
-  @media (max-width: 600px) {
-    .image-grid img {
-      width: 100%;
-      max-width: 100%;
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>媽祖田休閒農場</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #f4f6f8;
+      color: #333;
+      margin: 0;
+      padding: 0;
     }
-  }
-</style>
+    header {
+      background-color: #2c7a4b;
+      color: white;
+      text-align: center;
+      padding: 30px 20px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.2rem;
+      letter-spacing: 2px;
+    }
+    .services-tagline {
+      margin: 10px 0 15px;
+      font-size: 1rem;
+      opacity: 0.95;
+    }
+    .contact-info {
+      font-size: 0.95rem;
+      opacity: 0.9;
+      line-height: 1.6;
+    }
+    .contact-info a {
+      color: #ffd700;
+      text-decoration: none;
+    }
+    .product-categories {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .category-group {
+      margin-bottom: 30px;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .category-group h3 {
+      color: #2c7a4b;
+      margin-top: 0;
+      font-size: 1.3rem;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+    }
+    .category-group p {
+      color: #555;
+      margin-bottom: 15px;
+    }
+    .image-grid {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+    .image-grid img {
+      width: calc(50% - 15px);
+      max-width: 300px;
+      height: auto;
+      border-radius: 8px;
+      object-fit: cover;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    footer {
+      background-color: #1a4d2e;
+      color: white;
+      text-align: center;
+      padding: 25px 20px;
+      margin-top: 40px;
+      font-size: 0.95rem;
+      line-height: 1.8;
+    }
+    footer p {
+      margin: 5px 0;
+    }
+    @media (max-width: 600px) {
+      .image-grid img {
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 頁首：農場名稱與名片核心資訊 -->
+  <header>
+    <h1>媽祖田休閒農場</h1>
+    <div class="services-tagline">
+      賞花 / 採果 / 烤肉 / 泡茶 / 咖啡 / 放山雞 / 卡拉OK (用餐訂桌預約)
+    </div>
+    <div class="contact-info">
+      <p>
+        廖宗明：<a href="tel:0919775437">0919-775437</a> ｜ 
+        游鳳嬌：<a href="tel:0919315384">0919-315384</a> ｜ 
+        電話：<a href="tel:0222671679">(02)2267-1679</a>
+      </p>
+    </div>
+  </header>
+
+  <!-- 商品分類展示區塊 -->
+  <main class="product-categories">
+
+    <!-- 第一類：新鮮水蜜桃 -->
+    <div class="category-group">
+      <h3>🍑 新鮮嚴選水蜜桃</h3>
+      <p>高山現採、果香濃郁、飽滿多汁的頂級水蜜桃，禮盒裝送禮自用兩相宜。</p>
+      <div class="image-grid">
+        <img src="./1000001233.jpg" alt="新鮮水蜜桃秤重">
+        <img src="./1000001234.jpg" alt="禮盒裝水蜜桃">
+      </div>
+    </div>
+
+    <!-- 第二類：手作鮮採楊梅 -->
+    <div class="category-group">
+      <h3>🍓 手作鮮採楊梅</h3>
+      <p>產地直送、顆顆飽滿的新鮮楊梅，果園手工採收，酸甜好滋味。</p>
+      <div class="image-grid">
+        <img src="./1000001231.jpg" alt="果園採收實景">
+        <img src="./1000001235.jpg" alt="分裝新鮮楊梅">
+      </div>
+    </div>
+
+    <!-- 第三類：傳統手工漬物與特產 -->
+    <div class="category-group">
+      <h3>🍈 傳統手工漬物與特產</h3>
+      <p>遵循古法釀造的特色罈裝漬物，以及新鮮剖開的在地特色果物。</p>
+      <div class="image-grid">
+        <img src="./1000001230.jpg" alt="特色果物剖面">
+        <img src="./1000001232.jpg" alt="傳統罈裝漬物">
+      </div>
+    </div>
+
+    <!-- 第四類：風味特色料理 -->
+    <div class="category-group">
+      <h3>🍗 招牌風味料理</h3>
+      <p>外皮酥脆、肉質鮮嫩多汁的招牌桶仔雞，絕佳美味上桌。</p>
+      <div class="image-grid">
+        <img src="./1000001229.jpg" alt="招牌桶仔雞">
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 頁尾：地址與開放時間 -->
+  <footer>
+    <p>📍 地址：新北市土城區龍泉路72之1號[span_0](start_span)[span_0](end_span)</p>
+    <p>⏰ 開放時間：早上 8:00 ～ 下午 5 點 (星期一休園)[span_1](start_span)[span_1](end_span)</p>
+    <p style="font-size: 0.85rem; opacity: 0.8; margin-top: 10px;">© 媽祖田休閒農場 版權所有</p>
+  </footer>
+
+</body>
+</html>
