@@ -37,14 +37,12 @@ st.divider()
 # 📸 農場實景相簿區
 st.markdown("### 📸 農場風光與特色餐點")
 
-# 這裡會自動檢查你資料夾裡的圖片檔 (假設圖片命名為 1.jpg 到 7.jpg，或你想用的檔名)
-# 只要把照片檔跟 app.py 放在同一個資料夾，它就會自動秀出來！
+# 自動檢查並顯示資料夾中的圖片 (支援 1.jpg 到 7.jpg)
 image_files = ["1.jpg", "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg", "7.jpg"]
-
 found_images = [img for img in image_files if os.path.exists(img)]
 
 if found_images:
-    for img in found_images:
-        st.image(img, use_container_width=True)
+    for idx, img in enumerate(found_images, 1):
+        st.image(img, caption=f"農場風光照 {idx}", use_container_width=True)
 else:
-    st.warning("⚠️ 目前資料夾中還沒有找到圖片檔案。只要把照片（例如命名為 1.jpg、2.jpg...）放進跟 app.py 相同的資料夾，照片就會自動顯示在這裡喔！")
+    st.warning("⚠️ 目前在資料夾中找不到圖片檔。請確定照片有命名為 1.jpg 至 7.jpg 並放在同一個資料夾喔！")
