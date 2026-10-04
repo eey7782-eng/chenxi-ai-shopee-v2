@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>媽祖田休閒農場</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Noto Sans TC",
+        Arial,
+        sans-serif;
+
+      background: #f4f6f8;
+      color: #333;
+    }
+
+    /* =========================
+       頁首
+    ========================== */
+
+    header {
+      background: linear-gradient(
+        135deg,
+        #2c7a4b,
+        #17452a
+      );
+
+      color: white;
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    header h1 {
+      margin: 0;
+
+      font-size: 2.5rem;
+
+      letter-spacing: 4px;
+    }
+
+    .subtitle {
+      margin-top: 18px;
+
+      font-size: 1.1rem;
+
+      line-height: 2;
+    }
+
+    .contact {
+      margin-top: 20px;
+
+      line-height: 2;
+    }
+
+    .contact a {
+      color: #ffd700;
+
+      text-decoration: none;
+
+      font-weight: bold;
+    }
+
+
+    /* =========================
+       主要內容
+    ========================== */
+
+    main {
+      max-width: 1100px;
+
+      margin: 40px auto;
+
+      padding: 0 20px;
+    }
+
+
+    /* =========================
+       卡片
+    ========================== */
+
+    .card {
+      background: white;
+
+      margin-bottom: 30px;
+
+      padding: 25px;
+
+      border-radius: 18px;
+
+      box-shadow:
+        0 5px 20px
+        rgba(0, 0, 0, 0.08);
+    }
+
+    .card h2 {
+      color: #2c7a4b;
+
+      margin-top: 0;
+
+      font-size: 1.5rem;
+
+      border-bottom:
+        2px solid #e5e7eb;
+
+      padding-bottom: 12px;
+    }
+
+    .card p {
+      line-height: 1.9;
+
+      color: #555;
+    }
+
+
+    /* =========================
+       服務
+    ========================== */
+
+    .services {
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, 1fr);
+
+      gap: 15px;
+
+      margin-top: 20px;
+    }
+
+    .service {
+      background: #f5faf6;
+
+      padding: 20px;
+
+      border-radius: 12px;
+
+      text-align: center;
+
+      font-size: 1.1rem;
+
+      border:
+        1px solid #dcefe2;
+    }
+
+
+    /* =========================
+       圖片區
+    ========================== */
+
+    .photo-box {
+      margin-top: 20px;
+
+      width: 100%;
+
+      min-height: 220px;
+
+      border-radius: 15px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #e7efe9,
+          #d6e4da
+        );
+
+      display: flex;
+
+      align-items: center;
+
+      justify-content: center;
+
+      text-align: center;
+
+      color: #52705d;
+
+      font-size: 1.1rem;
+
+      padding: 30px;
+    }
+
+
+    /* =========================
+       預約
+    ========================== */
+
+    .booking {
+      text-align: center;
+
+      background:
+        linear-gradient(
+          135deg,
+          #fff8e1,
+          #fffdf5
+        );
+    }
+
+    .phone-button {
+      display: inline-block;
+
+      margin-top: 15px;
+
+      padding: 14px 28px;
+
+      background: #2c7a4b;
+
+      color: white;
+
+      text-decoration: none;
+
+      border-radius: 30px;
+
+      font-weight: bold;
+    }
+
+
+    /* =========================
+       頁尾
+    ========================== */
+
+    footer {
+      background: #173c25;
+
+      color: white;
+
+      text-align: center;
+
+      padding: 35px 20px;
+
+      line-height: 2;
+    }
+
+    footer p {
+      margin: 5px;
+    }
+
+
+    /* =========================
+       手機版
+    ========================== */
+
+    @media (max-width: 600px) {
+
+      header {
+        padding: 45px 15px;
+      }
+
+      header h1 {
+        font-size: 2rem;
+      }
+
+      .services {
+        grid-template-columns: 1fr;
+      }
+
+      main {
+        padding: 0 15px;
+      }
+
+      .card {
+        padding: 20px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+
+  <!-- =========================
+       頁首
+  ========================== -->
+
+  <header>
+
+    <h1>媽祖田休閒農場</h1>
+
+    <div class="subtitle">
+
+      🌸 賞花　
+      🍑 採果　
+      🔥 烤肉　
+      🍵 泡茶　
+      ☕ 咖啡　
+      🐔 放山雞　
+      🎤 卡拉OK
+
+      <br>
+
+      🍽️ 用餐訂桌請提前預約
+
+    </div>
+
+
+    <div class="contact">
+
+      <div>
+        廖宗明：
+
+        <a href="tel:0919775437">
+          0919-775437
+        </a>
+      </div>
+
+
+      <div>
+        游鳳嬌：
+
+        <a href="tel:0919315384">
+          0919-315384
+        </a>
+      </div>
+
+
+      <div>
+        農場電話：
+
+        <a href="tel:0222671679">
+          (02) 2267-1679
+        </a>
+      </div>
+
+    </div>
+
+  </header>
+
+
+
+  <!-- =========================
+       主要內容
+  ========================== -->
+
+  <main>
+
+
+    <!-- 農場介紹 -->
+
+    <section class="card">
+
+      <h2>🌳 農場介紹</h2>
+
+      <p>
+        歡迎來到媽祖田休閒農場。
+      </p>
+
+      <p>
+        這裡適合家庭聚餐、朋友聚會、
+        戶外休閒、採果、烤肉、泡茶與唱歌。
+      </p>
+
+      <div class="photo-box">
+
+        📷
+        <br><br>
+
+        農場照片將放在這裡
+
+      </div>
+
+    </section>
+
+
+
+    <!-- 休閒活動 -->
+
+    <section class="card">
+
+      <h2>🌿 農場休閒活動</h2>
+
+
+      <div class="services">
+
+        <div class="service">
+          🌸<br>
+          賞花
+        </div>
+
+        <div class="service">
+          🍑<br>
+          採果
+        </div>
+
+        <div class="service">
+          🔥<br>
+          戶外烤肉
+        </div>
+
+        <div class="service">
+          🍵<br>
+          泡茶
+        </div>
+
+        <div class="service">
+          ☕<br>
+          咖啡
+        </div>
+
+        <div class="service">
+          🐔<br>
+          放山雞
+        </div>
+
+        <div class="service">
+          🎤<br>
+          卡拉OK
+        </div>
+
+        <div class="service">
+          🍽️<br>
+          農場用餐
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- 水果 -->
+
+    <section class="card">
+
+      <h2>🍑 新鮮水果</h2>
+
+      <p>
+        農場提供季節性水果與採果體驗，
+        實際水果種類依當季產量為準。
+      </p>
+
+      <div class="photo-box">
+
+        🍑
+        <br><br>
+
+        水蜜桃・楊梅・季節水果照片
+
+      </div>
+
+    </section>
+
+
+
+    <!-- 烤肉 -->
+
+    <section class="card">
+
+      <h2>🔥 烤肉區</h2>
+
+      <p>
+        適合家庭與朋友一起享受戶外烤肉，
+        歡迎提前預約。
+      </p>
+
+      <div class="photo-box">
+
+        🔥
+        <br><br>
+
+        烤肉區照片
+
+      </div>
+
+    </section>
+
+
+
+    <!-- 放山雞 -->
+
+    <section class="card">
+
+      <h2>🐔 放山雞・特色料理</h2>
+
+      <p>
+        農場提供特色料理，
+        適合家庭聚餐與朋友聚會。
+      </p>
+
+      <div class="photo-box">
+
+        🐔
+        <br><br>
+
+        放山雞料理照片
+
+      </div>
+
+    </section>
+
+
+
+    <!-- 咖啡泡茶 -->
+
+    <section class="card">
+
+      <h2>☕ 咖啡・🍵 泡茶區</h2>
+
+      <p>
+        找個悠閒的午後，
+        喝杯咖啡或泡杯茶，
+        享受農場自然環境。
+      </p>
+
+      <div class="photo-box">
+
+        ☕ 🍵
+        <br><br>
+
+        咖啡與泡茶區照片
+
+      </div>
+
+    </section>
+
+
+
+    <!-- 卡拉OK -->
+
+    <section class="card">
+
+      <h2>🎤 卡拉OK</h2>
+
+      <p>
+        吃飯、聊天之後一起唱歌，
+        適合家庭與朋友聚會。
+      </p>
+
+      <div class="photo-box">
+
+        🎤
+        <br><br>
+
+        卡拉OK區照片
+
+      </div>
+
+    </section>
+
+
+
+    <!-- 預約 -->
+
+    <section class="card booking">
+
+      <h2>📞 用餐・活動預約</h2>
+
+      <p>
+        如需用餐、烤肉或團體活動，
+        建議提前電話預約。
+      </p>
+
+      <a
+        class="phone-button"
+        href="tel:0919775437"
+      >
+        📞 立即電話預約
+      </a>
+
+    </section>
+
+
+  </main>
+
+
+
+  <!-- =========================
+       頁尾
+  ========================== -->
+
+  <footer>
+
+    <p>
+      📍 新北市土城區龍泉路72之1號
+    </p>
+
+    <p>
+      ⏰ 開放時間：
