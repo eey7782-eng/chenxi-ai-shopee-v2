@@ -1,406 +1,85 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>山間悠活露營區 - 露營、咖啡、美食、歡樂、放鬆</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            background-color: #f4f6f0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            color: #2c3e2d;
-            overflow-x: hidden;
-        }
+<!-- 商品分類展示區塊 -->
+<section class="product-categories">
+  <h2>農場特色與精選商品</h2>
 
-        /* 頂部導覽列 */
-        .navbar {
-            background-color: #193124;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 40px;
-            color: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .nav-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .nav-logo-text {
-            display: flex;
-            flex-direction: column;
-        }
-        .nav-logo-text span.title {
-            font-size: 24px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            color: #ffffff;
-            line-height: 1.2;
-        }
-        .nav-logo-text span.subtitle {
-            font-size: 11px;
-            color: #b8cbb8;
-            letter-spacing: 2px;
-        }
-        .nav-links {
-            display: flex;
-            gap: 25px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .nav-links a {
-            color: #d1dcd4;
-            text-decoration: none;
-            font-size: 15px;
-            transition: color 0.3s;
-        }
-        .nav-links a:hover, .nav-links a.active {
-            color: #ffffff;
-        }
-        .nav-links a.active {
-            border-bottom: 2px solid #85a382;
-            padding-bottom: 3px;
-        }
-        .btn-booking {
-            background-color: #2e5a42 !important;
-            color: white !important;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            border: 1px solid #4a7c59;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        /* Hero 主視覺區 */
-        .hero {
-            position: relative;
-            width: 100%;
-            height: 480px;
-            background-image: url('https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1920&q=80');
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            align-items: flex-end;
-            justify-content: flex-end;
-            padding: 40px;
-        }
-        .hero-sign {
-            background: rgba(45, 33, 22, 0.9);
-            color: #fdfbf7;
-            padding: 20px 30px;
-            border-radius: 6px;
-            border: 2px dashed #d4b28c;
-            text-align: center;
-            transform: rotate(2deg);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-            max-width: 360px;
-        }
-        .hero-sign h2 {
-            font-size: 22px;
-            margin-bottom: 6px;
-            letter-spacing: 1px;
-        }
-        .hero-sign p {
-            font-size: 15px;
-            color: #e2d9cd;
-        }
-
-        /* 網格卡片區 */
-        .container {
-            max-width: 1320px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 22px;
-        }
-        .card {
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-            transition: transform 0.3s;
-            position: relative;
-        }
-        .card:hover {
-            transform: translateY(-4px);
-        }
-        .card-img-wrap {
-            position: relative;
-            height: 200px;
-        }
-        .card-img-wrap img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .card-badge {
-            position: absolute;
-            top: 14px;
-            left: 14px;
-            background-color: #193124;
-            color: white;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 15px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        .card-content {
-            padding: 16px 18px;
-        }
-        .card-content p {
-            font-size: 14px;
-            color: #4a5d4e;
-            line-height: 1.5;
-        }
-
-        /* 右下角手寫質感標語卡片 */
-        .promo-card {
-            background: #fffdf9;
-            border: 2px dashed #85a382;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 30px;
-            text-align: center;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
-            position: relative;
-        }
-        .promo-card h3 {
-            font-size: 24px;
-            color: #193124;
-            line-height: 1.6;
-            font-family: serif;
-        }
-        .promo-card::after {
-            content: "🌿";
-            position: absolute;
-            bottom: 15px;
-            left: 20px;
-            font-size: 22px;
-        }
-
-        /* 底部 Footer */
-        .footer {
-            background-color: #193124;
-            color: white;
-            padding: 25px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 50px;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .footer-icons {
-            display: flex;
-            gap: 30px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .footer-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 13px;
-            gap: 6px;
-            color: #b8cbb8;
-        }
-        .footer-item span.icon {
-            font-size: 20px;
-        }
-        .footer-banner {
-            background-color: #2e5a42;
-            padding: 12px 24px;
-            border-radius: 6px;
-            border: 1px dashed #d4b28c;
-            color: #fff;
-            font-weight: bold;
-            font-size: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-
-        /* 響應式：手機與平板自動調適 */
-        @media (max-width: 1024px) {
-            .grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        @media (max-width: 600px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
-            .navbar {
-                padding: 15px 20px;
-                justify-content: center;
-            }
-            .hero {
-                height: 360px;
-                padding: 20px;
-                justify-content: center;
-                align-items: center;
-            }
-            .hero-sign {
-                transform: rotate(0deg);
-            }
-            .footer {
-                justify-content: center;
-                text-align: center;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- 頂部導覽列 -->
-    <div class="navbar">
-        <div class="nav-logo">
-            <span style="font-size: 32px;">⛺</span>
-            <div class="nav-logo-text">
-                <span class="title">山間悠活露營區</span>
-                <span class="subtitle">露營 ‧ 咖啡 ‧ 美食 ‧ 歡樂 ‧ 放鬆</span>
-            </div>
-        </div>
-        <div class="nav-links">
-            <a href="#" class="active">首頁</a>
-            <a href="#">設施介紹</a>
-            <a href="#">園區介紹</a>
-            <a href="#">最新消息</a>
-            <a href="#">交通資訊</a>
-            <a href="#">聯絡我們</a>
-            <a href="#" class="btn-booking">📅 立即預約</a>
-        </div>
+  <!-- 第一類：新鮮水蜜桃 -->
+  <div class="category-group">
+    <h3>🍑 新鮮嚴選水蜜桃</h3>
+    <p>高山現採、果香濃郁、飽滿多汁的頂級水蜜桃，禮盒裝送禮自用兩相宜。</p>
+    <div class="image-grid">
+      <img src="./1000001233.jpg" alt="新鮮水蜜桃秤重">
+      <img src="./1000001234.jpg" alt="禮盒裝水蜜桃">
     </div>
+  </div>
 
-    <!-- Hero 主視覺 -->
-    <div class="hero">
-        <div class="hero-sign">
-            <h2>大自然 × 美食 × 歡樂</h2>
-            <p>給你最放鬆的度假時光 ♡</p>
-        </div>
+  <!-- 第二類：手作鮮採楊梅 -->
+  <div class="category-group">
+    <h3>🍓 手作鮮採楊梅</h3>
+    <p>產地直送、顆顆飽滿的新鮮楊梅，果園手工採收，酸甜好滋味。</p>
+    <div class="image-grid">
+      <img src="./1000001231.jpg" alt="果園採收實景">
+      <img src="./1000001235.jpg" alt="分裝新鮮楊梅">
     </div>
+  </div>
 
-    <!-- 網格卡片區 -->
-    <div class="container">
-        <div class="grid">
-            <!-- 1. 露營區 -->
-            <div class="card">
-                <div class="card-img-wrap">
-                    <img src="https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&w=600&q=80" alt="露營區">
-                    <div class="card-badge">⛺ 露營區</div>
-                </div>
-                <div class="card-content">
-                    <p>寬敞舒適的營位，讓您與大自然零距離。</p>
-                </div>
-            </div>
-
-            <!-- 2. 咖啡廳 -->
-            <div class="card">
-                <div class="card-img-wrap">
-                    <img src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80" alt="咖啡廳">
-                    <div class="card-badge">☕ 咖啡廳</div>
-                </div>
-                <div class="card-content">
-                    <p>香醇咖啡、手作甜點，享受悠閒時光。</p>
-                </div>
-            </div>
-
-            <!-- 3. 烤肉區 -->
-            <div class="card">
-                <div class="card-img-wrap">
-                    <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=80" alt="烤肉區">
-                    <div class="card-badge">🥩 烤肉區</div>
-                </div>
-                <div class="card-content">
-                    <p>新鮮食材，歡樂烤肉，與親朋好友共享美味。</p>
-                </div>
-            </div>
-
-            <!-- 4. 卡拉OK -->
-            <div class="card">
-                <div class="card-img-wrap">
-                    <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=600&q=80" alt="卡拉OK">
-                    <div class="card-badge">🎤 卡拉OK</div>
-                </div>
-                <div class="card-content">
-                    <p>歡唱無限，盡情放鬆，讓快樂加倍！</p>
-                </div>
-            </div>
-
-            <!-- 5. 泡茶區 -->
-            <div class="card">
-                <div class="card-img-wrap">
-                    <img src="https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80" alt="泡茶區">
-                    <div class="card-badge">🫖 泡茶區</div>
-                </div>
-                <div class="card-content">
-                    <p>品茗聊天，放鬆身心，感受茶香的寧靜。</p>
-                </div>
-            </div>
-
-            <!-- 6. 放山雞 -->
-            <div class="card">
-                <div class="card-img-wrap">
-                    <img src="https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=600&q=80" alt="放山雞">
-                    <div class="card-badge">🐓 放山雞</div>
-                </div>
-                <div class="card-content">
-                    <p>嚴選放山雞，新鮮美味，健康無憂。</p>
-                </div>
-            </div>
-
-            <!-- 7. 果園區 -->
-            <div class="card">
-                <div class="card-img-wrap">
-                    <img src="https://images.unsplash.com/photo-1610397646682-f4a471fcffde?auto=format&fit=crop&w=600&q=80" alt="果園區">
-                    <div class="card-badge">🍎 果園區</div>
-                </div>
-                <div class="card-content">
-                    <p>季節水果，現採現吃，體驗自然的甘甜。</p>
-                </div>
-            </div>
-
-            <!-- 8. 右下角手寫質感標語卡片 -->
-            <div class="promo-card">
-                <h3>🌿 遠離城市喧囂<br>來這裡，<br>遇見更好的自己 ♡</h3>
-            </div>
-        </div>
+  <!-- 第三類：傳統手工漬物與特產 -->
+  <div class="category-group">
+    <h3>🍈 傳統手工漬物與特產</h3>
+    <p>遵循古法釀造的特色罈裝漬物，以及新鮮剖開的在地特色果物。</p>
+    <div class="image-grid">
+      <img src="./1000001230.jpg" alt="特色果物剖面">
+      <img src="./1000001232.jpg" alt="傳統罈裝漬物">
     </div>
+  </div>
 
-    <!-- 底部 Footer 資訊列 -->
-    <div class="footer">
-        <div class="footer-icons">
-            <div class="footer-item"><span class="icon">⛺</span><span>露營</span></div>
-            <div class="footer-item"><span class="icon">☕</span><span>咖啡</span></div>
-            <div class="footer-item"><span class="icon">🥩</span><span>烤肉</span>},
-            <div class="footer-item"><span class="icon">🎤</span><span>卡拉OK</span></div>
-            <div class="footer-item"><span class="icon">🫖</span><span>泡茶</span></div>
-            <div class="footer-item"><span class="icon">🐓</span><span>放山雞</span></div>
-            <div class="footer-item"><span class="icon">🍎</span><span>果園</span></div>
-        </div>
-        <div class="footer-banner">
-            ✨ 歡迎預約，一起創造美好回憶！
-        </div>
+  <!-- 第四類：招牌風味料理 -->
+  <div class="category-group">
+    <h3>🍗 招牌風味料理</h3>
+    <p>外皮酥脆、肉質鮮嫩多汁的招牌桶仔雞，絕佳美味上桌。</p>
+    <div class="image-grid">
+      <img src="./1000001229.jpg" alt="招牌桶仔雞">
     </div>
+  </div>
+</section>
 
-</body>
-</html>
+<style>
+  .product-categories {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: sans-serif;
+  }
+  .category-group {
+    margin-bottom: 40px;
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+  }
+  .category-group h3 {
+    color: #333;
+    margin-bottom: 5px;
+  }
+  .category-group p {
+    color: #666;
+    margin-bottom: 15px;
+  }
+  .image-grid {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  .image-grid img {
+    width: calc(50% - 15px);
+    max-width: 300px;
+    height: auto;
+    border-radius: 6px;
+    object-fit: cover;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  @media (max-width: 600px) {
+    .image-grid img {
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+</style>
